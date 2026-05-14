@@ -20,15 +20,13 @@ const client = new Client({
   ]
 });
 
-// Prefix storage
+// Prefix
 let PREFIX = '?';
 
 if (fs.existsSync('./prefix.json')) {
-  const data = JSON.parse(
+  PREFIX = JSON.parse(
     fs.readFileSync('./prefix.json')
-  );
-
-  PREFIX = data.prefix;
+  ).prefix;
 }
 
 function savePrefix() {
@@ -40,7 +38,7 @@ function savePrefix() {
   );
 }
 
-// Role checks
+// Permissions
 function hasRole(member, roleName) {
   return member.roles.cache.some(
     role => role.name === roleName
@@ -96,14 +94,12 @@ client.on(
       args.shift()
         ?.toLowerCase();
 
-    // Prefix check
+    // Prefix
     if (
       command === 'prefix'
     ) {
 
-      if (
-        !args[0]
-      ) {
+      if (!args[0]) {
         return message.channel.send(
           `Current prefix: ${PREFIX}`
         );
@@ -119,20 +115,9 @@ client.on(
         );
       }
 
-      const action =
-        args[0];
-
       if (
-        action === 'set'
+        args[0] === 'set'
       ) {
-
-        if (
-          !args[1]
-        ) {
-          return message.channel.send(
-            'Example: ?prefix set !'
-          );
-        }
 
         PREFIX =
           args[1];
@@ -146,7 +131,7 @@ client.on(
       }
 
       if (
-        action === 'reset'
+        args[0] === 'reset'
       ) {
 
         PREFIX =
@@ -163,51 +148,57 @@ client.on(
     }
 
     // Avatar
-if (command === 'av') {
+    if (
+      command === 'av'
+    ) {
 
-  const user =
-    message.mentions.users.first() ||
-    message.author;
+      const user =
+        message.mentions.users.first() ||
+        message.author;
 
-  const avatarURL =
-    user.displayAvatarURL({
-      size: 1024
-    });
+      const avatarURL =
+        user.displayAvatarURL({
+          size: 1024
+        });
 
-   const embed =
-  new EmbedBuilder()
-    .setColor('#ff0000')
-    .setAuthor({
-      name: `${user.username}'s Avatar`,
-      iconURL: avatarURL
-    })
-    .setImage(
-      avatarURL
-    );
-
-  const row =
-    new ActionRowBuilder()
-      .addComponents(
-
-        new ButtonBuilder()
-          .setLabel(
-            'Open in Browser'
+      const embed =
+        new EmbedBuilder()
+          .setColor(
+            '#ff0000'
           )
-          .setStyle(
-            ButtonStyle.Link
-          )
-          .setURL(
+          .setAuthor({
+            name:
+`${user.username}'s Avatar`,
+            iconURL:
+              avatarURL
+          })
+          .setImage(
             avatarURL
-          )
+          );
 
-      );
+      const row =
+        new ActionRowBuilder()
+          .addComponents(
 
-  return message.channel.send({
-    embeds: [embed],
-    components: [row]
-  });
+            new ButtonBuilder()
+              .setLabel(
+                'Open in Browser'
+              )
+              .setStyle(
+                ButtonStyle.Link
+              )
+              .setURL(
+                avatarURL
+              )
 
-}
+          );
+
+      return message.channel.send({
+        embeds: [embed],
+        components: [row]
+      });
+
+    }
 
     // Member count
     if (
@@ -216,6 +207,246 @@ if (command === 'av') {
 
       return message.channel.send(
         `Members: ${message.guild.memberCount}`
+      );
+
+    }
+
+    // Role toggle
+    if (
+      command === 'role'
+    ) {
+
+      if (
+        !isOwnerOrAdmin(
+          message.member
+        )
+      ) {
+        return message.channel.send(
+          'No permission.'
+        );
+      }
+
+      const member =
+        message.mentions.members.first();
+
+      if (!member) {
+        return message.channel.send(
+          'Use: ?role @user Role Name'
+        );
+      }
+
+      const roleName =
+        args.slice(1).join(' ');
+
+      const role =
+        message.guild.roles.cache.find(
+          r =>
+            r.name.toLowerCase() ===
+            roleName.toLowerCase()
+        );
+
+      if (!role) {
+        return message.channel.send(
+          'Role not found.'
+        );
+      }
+
+      if (
+        member.roles.cache.has(
+          role.id
+        )
+      ) {
+
+        await member.roles.remove(
+          role
+        );
+
+        return message.channel.send(
+          `Removed ${role.name} from ${member.user.username}`
+        );
+
+      } else {
+
+        await member.roles.add(
+          role
+        );
+
+        return message.channel.send(
+          `Added ${role.name} to ${member.user.username}`
+        );
+
+      }
+
+    }
+
+    // Purge
+    if (
+      command === 'purge'
+    ) {
+
+      if (
+        !isOwnerOrAdmin(
+          message.member
+        )
+      ) {
+        return message.channel.send(
+          'No permission.'
+        );
+      }
+
+      const amount =
+        parseInt(
+          args[0]
+        );
+
+      await message.channel.bulkDelete(
+        amount,
+        true
+      );
+
+      return message.channel.send(
+        `Deleted ${amount} messages.`
+      );
+
+    }
+
+    // Kick
+    if (
+      command === 'kick'
+    ) {
+
+      if (
+        !isOwnerOrAdmin(
+          message.member
+        )
+      ) {
+        return message.channel.send(
+          'No permission.'
+        );
+      }
+
+      const member =
+        message.mentions.members.first();
+
+      await member.kick();
+
+      return message.channel.send(
+        `${member.user.tag} kicked.`
+      );
+
+    }
+
+    // Ban
+    if (
+      command === 'ban'
+    ) {
+
+      if (
+        !isOwnerOrAdmin(
+          message.member
+        )
+      ) {
+        return message.channel.send(
+          'No permission.'
+        );
+      }
+
+      const member =
+        message.mentions.members.first();
+
+      await member.ban();
+
+      return message.channel.send(
+        `${member.user.tag} banned.`
+      );
+
+    }
+
+    // Unban
+    if (
+      command === 'unban'
+    ) {
+
+      if (
+        !isOwnerOrAdmin(
+          message.member
+        )
+      ) {
+        return message.channel.send(
+          'No permission.'
+        );
+      }
+
+      await message.guild.members.unban(
+        args[0]
+      );
+
+      return message.channel.send(
+        'User unbanned.'
+      );
+
+    }
+
+    // Timeout
+    if (
+      command === 'timeout'
+    ) {
+
+      if (
+        !isOwnerOrAdmin(
+          message.member
+        ) &&
+        !isModerator(
+          message.member
+        )
+      ) {
+        return message.channel.send(
+          'No permission.'
+        );
+      }
+
+      const member =
+        message.mentions.members.first();
+
+      await member.timeout(
+        10 *
+        60 *
+        1000
+      );
+
+      return message.channel.send(
+        `${member.user.tag} timed out.`
+      );
+
+    }
+
+    // Untimeout
+    if (
+      command === 'untimeout'
+    ) {
+
+      if (
+        !isOwnerOrAdmin(
+          message.member
+        ) &&
+        !isModerator(
+          message.member
+        )
+      ) {
+        return message.channel.send(
+          'No permission.'
+        );
+      }
+
+      const member =
+        message.mentions.members.first();
+
+      await member.timeout(
+        null
+      );
+
+      return message.channel.send(
+        `${member.user.tag} timeout removed.`
       );
 
     }
@@ -262,226 +493,97 @@ if (command === 'av') {
 
     }
 
-    // Purge
+    // Rules
     if (
-      command === 'purge'
+      command === 'rules'
     ) {
 
-      if (
-        !isOwnerOrAdmin(
-          message.member
-        )
-      ) {
-        return message.channel.send(
-          'No permission.'
-        );
-      }
+      const embed =
+        new EmbedBuilder()
+          .setColor(
+            '#ff0000'
+          )
+          .setTitle(
+'📌 Krunker Mumbai • OFFICIAL RULES'
+          )
+          .setDescription(
+`**Be Respectful**
+Treat all members with respect. No racism, sexism, or hate speech.
 
-      const amount =
-        parseInt(
-          args[0]
-        );
+**No Spamming**
+Avoid flooding messages, images, or pings.
 
-      if (
-        !amount
-      ) {
-        return message.channel.send(
-          'Example: ?purge 20'
-        );
-      }
+**Use Channels Properly**
+Keep topics in correct channels.
 
-      await message.channel.bulkDelete(
-        amount,
-        true
-      );
+**Voice Chat Etiquette**
+No mic spam, loud music, or disruptive behavior.
 
-      return message.channel.send(
-        `Deleted ${amount} messages.`
-      );
+**Follow Staff Instructions**
+Admins and Mods are here to help.
+
+**Keep it Safe for All**
+No NSFW, gore, or offensive content.
+
+**Have Fun!**
+We're a family. Compete hard, chill harder.`
+          );
+
+      return message.channel.send({
+        embeds: [embed]
+      });
 
     }
 
-    // Kick
+    // Pickup Rules
     if (
-      command === 'kick'
+      command === 'pickuprules'
     ) {
 
-      if (
-        !isOwnerOrAdmin(
-          message.member
-        )
-      ) {
-        return message.channel.send(
-          'No permission.'
-        );
-      }
+      const embed =
+        new EmbedBuilder()
+          .setColor(
+            '#ff0000'
+          )
+          .setTitle(
+'🎯 Krunker Mumbai • Pickup Rules'
+          )
+          .setDescription(
+`**Pickup Rules**
+Play properly — no trolling, griefing, or throwing
+Do not leave matches midway
+No reporting losses before the match ends
+Only weapon skins are allowed
+Anonymous mode must be OFF
+Stay until final results screen
+Request a sub before leaving
 
-      const member =
-        message.mentions.members.first();
+**Allowed Classes**
+Triggerman
+Hunter
+Run N Gun
+Detective
+Marksman
+Commando
+Spray N Pray
+Vince
+Agent
+Trooper
 
-      if (
-        !member
-      ) {
-        return message.channel.send(
-          'Mention a user.'
-        );
-      }
+**Restricted (2v2 / 3v3)**
+Hunter
+Spray N Pray
 
-      await member.kick();
+**Penalties**
+Class swapping → 10min
+Unfair kicking → 30min
+Dodging → 20min
+Leaving → 20min`
+          );
 
-      return message.channel.send(
-        `${member.user.tag} kicked.`
-      );
-
-    }
-
-    // Ban
-    if (
-      command === 'ban'
-    ) {
-
-      if (
-        !isOwnerOrAdmin(
-          message.member
-        )
-      ) {
-        return message.channel.send(
-          'No permission.'
-        );
-      }
-
-      const member =
-        message.mentions.members.first();
-
-      if (
-        !member
-      ) {
-        return message.channel.send(
-          'Mention a user.'
-        );
-      }
-
-      await member.ban();
-
-      return message.channel.send(
-        `${member.user.tag} banned.`
-      );
-
-    }
-
-    // Unban
-    if (
-      command === 'unban'
-    ) {
-
-      if (
-        !isOwnerOrAdmin(
-          message.member
-        )
-      ) {
-        return message.channel.send(
-          'No permission.'
-        );
-      }
-
-      const userId =
-        args[0];
-
-      if (
-        !userId
-      ) {
-        return message.channel.send(
-          'Example: ?unban USER_ID'
-        );
-      }
-
-      await message.guild.members.unban(
-        userId
-      );
-
-      return message.channel.send(
-        `User unbanned.`
-      );
-
-    }
-
-    // Timeout
-    if (
-      command === 'timeout'
-    ) {
-
-      if (
-        !isOwnerOrAdmin(
-          message.member
-        ) &&
-        !isModerator(
-          message.member
-        )
-      ) {
-        return message.channel.send(
-          'No permission.'
-        );
-      }
-
-      const member =
-        message.mentions.members.first();
-
-      if (
-        !member
-      ) {
-        return message.channel.send(
-          'Mention a user.'
-        );
-      }
-
-      await member.timeout(
-        10 *
-        60 *
-        1000
-      );
-
-      return message.channel.send(
-        `${member.user.tag} timed out.`
-      );
-
-    }
-
-    // Untimeout
-    if (
-      command === 'untimeout'
-    ) {
-
-      if (
-        !isOwnerOrAdmin(
-          message.member
-        ) &&
-        !isModerator(
-          message.member
-        )
-      ) {
-        return message.channel.send(
-          'No permission.'
-        );
-      }
-
-      const member =
-        message.mentions.members.first();
-
-      if (
-        !member
-      ) {
-        return message.channel.send(
-          'Mention a user.'
-        );
-      }
-
-      await member.timeout(
-        null
-      );
-
-      return message.channel.send(
-        `${member.user.tag} timeout removed.`
-      );
+      return message.channel.send({
+        embeds: [embed]
+      });
 
     }
 
@@ -501,7 +603,9 @@ if (command === 'av') {
           .setTitle(
             message.guild.name
           )
-         
+          .setThumbnail(
+            message.guild.iconURL()
+          )
           .setDescription(
 `**Owner**
 ${owner.user.username}
@@ -547,108 +651,6 @@ ${message.guild.roles.cache.size}`
       });
 
     }
-
-    // Rules
-   if (command === 'rules') {
-
-  const embed = new EmbedBuilder()
-    .setColor('#ff0000')
-    .setTitle('📌 Krunker Mumbai • OFFICIAL RULES')
-    .setThumbnail(message.guild.iconURL())
-    .setDescription(
-`**Be Respectful**
-Treat all members with respect. No racism, sexism, or hate speech.
-
-**No Spamming**
-Avoid flooding messages, images, or pings.
-
-**Use Channels Properly**
-Keep topics in the correct channels (example: #scrim-schedule).
-
-**Voice Chat Etiquette**
-No loud music, mic spam, or disruptive behavior. Respect others in voice.
-
-**Follow Staff Instructions**
-Admins and Moderators are here to help. Ignoring them can lead to punishment.
-
-**Keep it Safe for All**
-No NSFW content, extreme gore, or offensive media.
-
-**Have Fun!**
-We're a family. Compete hard, chill harder.`
-    );
-
-  return message.channel.send({
-    embeds: [embed]
-  });
-
-}
-
-    // Pickup rules
-if (command === 'pickuprules') {
-
-  const embed = new EmbedBuilder()
-    .setColor('#ff0000')
-    .setTitle('🎯 Krunker Mumbai • Pickup Rules')
-    .setThumbnail(message.guild.iconURL())
-    .setDescription(
-`**Pickup Rules**
-Play properly — no trolling, griefing, or throwing (includes excessive TDM play)
-Do not leave matches midway
-No reporting losses before the match ends
-Only weapon skins are allowed (no other cosmetics)
-Anonymous mode must be OFF (if verified)
-Stay until the final results screen
-If you need to leave, request a sub first
-Don’t misuse bot commands during matches
-
-**Allowed Classes**
-Triggerman (AR)
-Hunter (Sniper)
-Run N Gun (SMG)
-Detective (Revolver)
-Marksman (Semi-Auto)
-Commando (FAMAS)
-Spray N Pray (LMG)
-Vince (Shotgun)
-Agent (Akimbo Uzi)
-Trooper (Blaster)
-
-**Restricted (2v2 / 3v3)**
-Hunter (Sniper)
-Spray N Pray (LMG)
-
-**Allowed Secondary Weapons**
-Pistol
-Akimbo Pistols
-Auto Pistol
-Desert Eagle
-Techy-9
-
-**Pickups Bot Commands**
-++ → Join every queue
-+2v2 → Join a queue
--- → Leave every queue
-!pick @player → Captain picks players
-!rl → Report match loss
-!lb → View leaderboard
-!rank → Check your rank
-
-**Penalties**
-Class swapping mid-game → 10min
-Unfair kicking/banning → 30min
-Dodging games → 20min
-Leaving games → 20min
-Wrong game reports → 30min
-
-*Note: punishments may vary depending on the situation.*`
-    );
-
-  return message.channel.send({
-    embeds: [embed]
-  });
-
-}
 
   }
 );
@@ -718,9 +720,7 @@ client.on(
             emoji =>
               emoji.toString()
           )
-          .join(
-            ' '
-          );
+          .join(' ');
 
       return interaction.reply({
         content:
