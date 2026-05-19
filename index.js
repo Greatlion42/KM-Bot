@@ -8,7 +8,9 @@ const {
   EmbedBuilder,
   ActionRowBuilder,
   ButtonBuilder,
-  ButtonStyle
+  ButtonStyle,
+  ChannelType,
+  PermissionsBitField
 } = require('discord.js');
 
 const client = new Client({
@@ -16,11 +18,12 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildPresences,
     GatewayIntentBits.MessageContent
   ]
 });
 
-// Prefix
+// PREFIX SYSTEM
 let PREFIX = '?';
 
 if (fs.existsSync('./prefix.json')) {
@@ -38,7 +41,7 @@ function savePrefix() {
   );
 }
 
-// Permissions
+// ROLE CHECKS
 function hasRole(member, roleName) {
   return member.roles.cache.some(
     role => role.name === roleName
@@ -59,7 +62,7 @@ function isModerator(member) {
   );
 }
 
-// Online
+// READY
 client.once(
   'clientReady',
   () => {
@@ -69,13 +72,14 @@ client.once(
   }
 );
 
-// Commands
+// COMMANDS
 client.on(
   'messageCreate',
   async (message) => {
 
     if (message.author.bot) return;
     if (!message.guild) return;
+
     if (
       !message.content.startsWith(
         PREFIX
@@ -94,14 +98,12 @@ client.on(
       args.shift()
         ?.toLowerCase();
 
-    // Prefix
-    if (
-      command === 'prefix'
-    ) {
+    // PREFIX
+    if (command === 'prefix') {
 
       if (!args[0]) {
         return message.channel.send(
-          `Current prefix: ${PREFIX}`
+          `Current Prefix: ${PREFIX}`
         );
       }
 
@@ -119,8 +121,7 @@ client.on(
         args[0] === 'set'
       ) {
 
-        PREFIX =
-          args[1];
+        PREFIX = args[1];
 
         savePrefix();
 
@@ -134,8 +135,7 @@ client.on(
         args[0] === 'reset'
       ) {
 
-        PREFIX =
-          '?';
+        PREFIX = '?';
 
         savePrefix();
 
@@ -147,10 +147,8 @@ client.on(
 
     }
 
-    // Avatar
-    if (
-      command === 'av'
-    ) {
+    // AVATAR
+    if (command === 'av') {
 
       const user =
         message.mentions.users.first() ||
@@ -158,23 +156,19 @@ client.on(
 
       const avatarURL =
         user.displayAvatarURL({
-          size: 1024
+          size: 1024,
+          dynamic: true
         });
 
       const embed =
         new EmbedBuilder()
-          .setColor(
-            '#ff0000'
-          )
+          .setColor('#ff0000')
           .setAuthor({
             name:
 `${user.username}'s Avatar`,
-            iconURL:
-              avatarURL
+            iconURL: avatarURL
           })
-          .setImage(
-            avatarURL
-          );
+          .setImage(avatarURL);
 
       const row =
         new ActionRowBuilder()
@@ -200,7 +194,7 @@ client.on(
 
     }
 
-    // Member count
+    // MEMBERCOUNT
     if (
       command === 'membercount'
     ) {
@@ -211,7 +205,7 @@ client.on(
 
     }
 
-    // Role toggle
+    // ROLE TOGGLE
     if (
       command === 'role'
     ) {
@@ -279,7 +273,7 @@ client.on(
 
     }
 
-    // Purge
+    // PURGE
     if (
       command === 'purge'
     ) {
@@ -295,9 +289,13 @@ client.on(
       }
 
       const amount =
-        parseInt(
-          args[0]
+        parseInt(args[0]);
+
+      if (!amount) {
+        return message.channel.send(
+          'Enter amount.'
         );
+      }
 
       await message.channel.bulkDelete(
         amount,
@@ -310,10 +308,8 @@ client.on(
 
     }
 
-    // Kick
-    if (
-      command === 'kick'
-    ) {
+    // BAN
+    if (command === 'ban') {
 
       if (
         !isOwnerOrAdmin(
@@ -328,31 +324,11 @@ client.on(
       const member =
         message.mentions.members.first();
 
-      await member.kick();
-
-      return message.channel.send(
-        `${member.user.tag} kicked.`
-      );
-
-    }
-
-    // Ban
-    if (
-      command === 'ban'
-    ) {
-
-      if (
-        !isOwnerOrAdmin(
-          message.member
-        )
-      ) {
+      if (!member) {
         return message.channel.send(
-          'No permission.'
+          'Mention a user.'
         );
       }
-
-      const member =
-        message.mentions.members.first();
 
       await member.ban();
 
@@ -362,7 +338,7 @@ client.on(
 
     }
 
-    // Unban
+    // UNBAN
     if (
       command === 'unban'
     ) {
@@ -387,7 +363,37 @@ client.on(
 
     }
 
-    // Timeout
+    // KICK
+    if (command === 'kick') {
+
+      if (
+        !isOwnerOrAdmin(
+          message.member
+        )
+      ) {
+        return message.channel.send(
+          'No permission.'
+        );
+      }
+
+      const member =
+        message.mentions.members.first();
+
+      if (!member) {
+        return message.channel.send(
+          'Mention a user.'
+        );
+      }
+
+      await member.kick();
+
+      return message.channel.send(
+        `${member.user.tag} kicked.`
+      );
+
+    }
+
+    // TIMEOUT
     if (
       command === 'timeout'
     ) {
@@ -409,9 +415,7 @@ client.on(
         message.mentions.members.first();
 
       await member.timeout(
-        10 *
-        60 *
-        1000
+        10 * 60 * 1000
       );
 
       return message.channel.send(
@@ -420,7 +424,7 @@ client.on(
 
     }
 
-    // Untimeout
+    // UNTIMEOUT
     if (
       command === 'untimeout'
     ) {
@@ -441,92 +445,46 @@ client.on(
       const member =
         message.mentions.members.first();
 
-      await member.timeout(
-        null
-      );
+      await member.timeout(null);
 
       return message.channel.send(
-        `${member.user.tag} timeout removed.`
+        `${member.user.tag} unmuted.`
       );
 
     }
 
-    // Roles
-    if (
-      command === 'roles'
-    ) {
-
-      const roles =
-        message.guild.roles.cache
-          .sort(
-            (
-              a,
-              b
-            ) =>
-              b.position -
-              a.position
-          )
-          .map(
-            role =>
-              role.toString()
-          )
-          .join('\n');
-
-      const embed =
-        new EmbedBuilder()
-          .setColor(
-            '#ff0000'
-          )
-          .setTitle(
-`Roles [${message.guild.roles.cache.size}]`
-          )
-          .setDescription(
-            roles.slice(
-              0,
-              4000
-            )
-          );
-
-      return message.channel.send({
-        embeds: [embed]
-      });
-
-    }
-
-    // Rules
+    // RULES
     if (
       command === 'rules'
     ) {
 
       const embed =
         new EmbedBuilder()
-          .setColor(
-            '#ff0000'
-          )
+          .setColor('#ff0000')
           .setTitle(
-'📌 Krunker Mumbai • OFFICIAL RULES'
+            '📌 Krunker Mumbai • OFFICIAL RULES'
           )
           .setDescription(
 `**Be Respectful**
-Treat all members with respect. No racism, sexism, or hate speech.
+Treat all members with respect.
 
 **No Spamming**
-Avoid flooding messages, images, or pings.
+Avoid flooding messages.
 
 **Use Channels Properly**
-Keep topics in correct channels.
+Use channels correctly.
 
 **Voice Chat Etiquette**
-No mic spam, loud music, or disruptive behavior.
+No mic spam or loud music.
 
 **Follow Staff Instructions**
-Admins and Mods are here to help.
+Listen to staff.
 
-**Keep it Safe for All**
-No NSFW, gore, or offensive content.
+**Keep it Safe**
+No NSFW or gore.
 
 **Have Fun!**
-We're a family. Compete hard, chill harder.`
+Compete hard, chill harder.`
           );
 
       return message.channel.send({
@@ -535,28 +493,24 @@ We're a family. Compete hard, chill harder.`
 
     }
 
-    // Pickup Rules
+    // PICKUP RULES
     if (
       command === 'pickuprules'
     ) {
 
       const embed =
         new EmbedBuilder()
-          .setColor(
-            '#ff0000'
-          )
+          .setColor('#ff0000')
           .setTitle(
-'🎯 Krunker Mumbai • Pickup Rules'
+            '🎯 Krunker Mumbai • Pickup Rules'
           )
           .setDescription(
 `**Pickup Rules**
-Play properly — no trolling, griefing, or throwing
+Play properly — no trolling or throwing
 Do not leave matches midway
-No reporting losses before the match ends
-Only weapon skins are allowed
-Anonymous mode must be OFF
-Stay until final results screen
-Request a sub before leaving
+No fake reports
+Only weapon skins allowed
+Stay until final screen
 
 **Allowed Classes**
 Triggerman
@@ -570,15 +524,14 @@ Vince
 Agent
 Trooper
 
-**Restricted (2v2 / 3v3)**
+**Restricted**
 Hunter
 Spray N Pray
 
 **Penalties**
-Class swapping → 10min
-Unfair kicking → 30min
 Dodging → 20min
-Leaving → 20min`
+Leaving → 20min
+Wrong reports → 30min`
           );
 
       return message.channel.send({
@@ -587,35 +540,189 @@ Leaving → 20min`
 
     }
 
-    // Server info
+    // ROLES
+    if (
+      command === 'roles'
+    ) {
+
+      const roles =
+        message.guild.roles.cache
+          .sort(
+            (a, b) =>
+              b.position -
+              a.position
+          )
+          .map(
+            role =>
+              role.toString()
+          );
+
+      const chunks = [];
+
+      while (roles.length) {
+        chunks.push(
+          roles.splice(
+            0,
+            50
+          ).join('\n')
+        );
+      }
+
+      for (const chunk of chunks) {
+
+        const embed =
+          new EmbedBuilder()
+            .setColor('#ff0000')
+            .setTitle(
+`Roles [${message.guild.roles.cache.size}]`
+            )
+            .setDescription(chunk);
+
+        await message.channel.send({
+          embeds: [embed]
+        });
+
+      }
+
+    }
+
+    // SERVERINFO
     if (
       command === 'serverinfo'
     ) {
 
-      const owner =
-        await message.guild.fetchOwner();
+      const guild = message.guild;
+
+      const textChannels =
+        guild.channels.cache.filter(
+          c =>
+            c.type ===
+            ChannelType.GuildText
+        ).size;
+
+      const voiceChannels =
+        guild.channels.cache.filter(
+          c =>
+            c.type ===
+            ChannelType.GuildVoice
+        ).size;
+
+      const categories =
+        guild.channels.cache.filter(
+          c =>
+            c.type ===
+            ChannelType.GuildCategory
+        ).size;
+
+      const bots =
+        guild.members.cache.filter(
+          m => m.user.bot
+        ).size;
+
+      const humans =
+        guild.memberCount - bots;
+
+      const onlineMembers =
+        guild.members.cache.filter(
+          m =>
+            m.presence?.status !==
+            'offline'
+        ).size;
 
       const embed =
         new EmbedBuilder()
-          .setColor(
-            '#ff0000'
-          )
-          .setTitle(
-            message.guild.name
-          )
+          .setColor('#ff0000')
+
+          .setAuthor({
+            name: guild.name,
+            iconURL:
+              guild.iconURL({
+                dynamic: true
+              })
+          })
+
           .setThumbnail(
-            message.guild.iconURL()
+            guild.iconURL({
+              dynamic: true,
+              size: 1024
+            })
           )
-          .setDescription(
-`**Owner**
-${owner.user.username}
 
-**Members**
-${message.guild.memberCount}
+          .addFields(
 
-**Roles**
-${message.guild.roles.cache.size}`
-          );
+            {
+              name: '👑 Owner',
+              value:
+                `<@${guild.ownerId}>`,
+              inline: true
+            },
+
+            {
+              name: '🆔 Server ID',
+              value: guild.id,
+              inline: true
+            },
+
+            {
+              name: '📅 Created',
+              value:
+                `<t:${parseInt(
+                  guild.createdTimestamp / 1000
+                )}:R>`,
+              inline: true
+            },
+
+            {
+              name: '👥 Members',
+              value:
+                `Total: ${guild.memberCount}\n` +
+                `Humans: ${humans}\n` +
+                `Bots: ${bots}\n` +
+                `Online: ${onlineMembers}`,
+              inline: true
+            },
+
+            {
+              name: '💎 Boosts',
+              value:
+                `Level: ${guild.premiumTier}\n` +
+                `Boosts: ${guild.premiumSubscriptionCount || 0}`,
+              inline: true
+            },
+
+            {
+              name: '📚 Channels',
+              value:
+                `Categories: ${categories}\n` +
+                `Text: ${textChannels}\n` +
+                `Voice: ${voiceChannels}`,
+              inline: true
+            }
+
+          )
+
+          .setFooter({
+            text:
+`Requested by ${message.author.username}`,
+            iconURL:
+              message.author.displayAvatarURL({
+                dynamic: true
+              })
+          })
+
+          .setTimestamp();
+
+      if (
+        guild.bannerURL()
+      ) {
+
+        embed.setImage(
+          guild.bannerURL({
+            size: 1024
+          })
+        );
+
+      }
 
       const row =
         new ActionRowBuilder()
@@ -626,7 +733,7 @@ ${message.guild.roles.cache.size}`
                 'roles_btn'
               )
               .setLabel(
-                'Roles'
+`Roles (${guild.roles.cache.size})`
               )
               .setStyle(
                 ButtonStyle.Danger
@@ -637,7 +744,7 @@ ${message.guild.roles.cache.size}`
                 'emojis_btn'
               )
               .setLabel(
-                'Emojis'
+`Emojis (${guild.emojis.cache.size})`
               )
               .setStyle(
                 ButtonStyle.Secondary
@@ -655,7 +762,7 @@ ${message.guild.roles.cache.size}`
   }
 );
 
-// Buttons
+// BUTTONS
 client.on(
   'interactionCreate',
   async (
@@ -666,6 +773,7 @@ client.on(
       !interaction.isButton()
     ) return;
 
+    // ROLES BUTTON
     if (
       interaction.customId ===
       'roles_btn'
@@ -674,41 +782,51 @@ client.on(
       const roles =
         interaction.guild.roles.cache
           .sort(
-            (
-              a,
-              b
-            ) =>
+            (a, b) =>
               b.position -
               a.position
           )
           .map(
             role =>
               role.toString()
-          )
-          .join('\n');
-
-      const embed =
-        new EmbedBuilder()
-          .setColor(
-            '#ff0000'
-          )
-          .setTitle(
-`Roles [${interaction.guild.roles.cache.size}]`
-          )
-          .setDescription(
-            roles.slice(
-              0,
-              4000
-            )
           );
 
+      const chunks = [];
+
+      while (roles.length) {
+        chunks.push(
+          roles.splice(
+            0,
+            50
+          ).join('\n')
+        );
+      }
+
+      for (const chunk of chunks) {
+
+        const embed =
+          new EmbedBuilder()
+            .setColor('#ff0000')
+            .setTitle(
+`Roles [${interaction.guild.roles.cache.size}]`
+            )
+            .setDescription(chunk);
+
+        await interaction.channel.send({
+          embeds: [embed]
+        });
+
+      }
+
       return interaction.reply({
-        embeds: [embed],
+        content:
+          'Sent roles list.',
         ephemeral: true
       });
 
     }
 
+    // EMOJIS BUTTON
     if (
       interaction.customId ===
       'emojis_btn'
@@ -719,13 +837,30 @@ client.on(
           .map(
             emoji =>
               emoji.toString()
-          )
-          .join(' ');
+          );
+
+      const chunks = [];
+
+      while (emojis.length) {
+        chunks.push(
+          emojis.splice(
+            0,
+            50
+          ).join(' ')
+        );
+      }
+
+      for (const chunk of chunks) {
+
+        await interaction.channel.send(
+          chunk
+        );
+
+      }
 
       return interaction.reply({
         content:
-          emojis ||
-          'No emojis found.',
+          'Sent emojis list.',
         ephemeral: true
       });
 
@@ -736,4 +871,4 @@ client.on(
 
 client.login(
   process.env.TOKEN
-);
+); 
