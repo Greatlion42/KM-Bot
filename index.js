@@ -63,146 +63,6 @@ client.once('clientReady', () => {
   console.log(`${client.user.tag} is online!`);
 });
 
-// USERINFO
-if (command === 'userinfo') {
-
-  const member =
-    message.mentions.members.first() ||
-    message.member;
-
-  const roles = member.roles.cache
-    .filter(role => role.name !== '@everyone')
-    .sort((a, b) => b.position - a.position);
-
-  let roleText = roles.map(role => role.toString()).join(', ');
-
-  if (roleText.length > 1000) {
-    roleText = 'Too many roles to show.';
-  }
-
-  const permissions = [];
-
-  if (member.permissions.has('Administrator'))
-    permissions.push('Administrator');
-
-  if (member.permissions.has('ManageGuild'))
-    permissions.push('Manage Server');
-
-  if (member.permissions.has('ManageRoles'))
-    permissions.push('Manage Roles');
-
-  if (member.permissions.has('ManageChannels'))
-    permissions.push('Manage Channels');
-
-  if (member.permissions.has('ManageMessages'))
-    permissions.push('Manage Messages');
-
-  if (member.permissions.has('ManageWebhooks'))
-    permissions.push('Manage Webhooks');
-
-  if (member.permissions.has('ManageNicknames'))
-    permissions.push('Manage Nicknames');
-
-  if (member.permissions.has('ManageEmojisAndStickers'))
-    permissions.push('Manage Emojis and Stickers');
-
-  if (member.permissions.has('KickMembers'))
-    permissions.push('Kick Members');
-
-  if (member.permissions.has('BanMembers'))
-    permissions.push('Ban Members');
-
-  if (member.permissions.has('MentionEveryone'))
-    permissions.push('Mention Everyone');
-
-  if (member.permissions.has('ModerateMembers'))
-    permissions.push('Timeout Members');
-
-  const acknowledgements = [];
-
-  if (member.id === message.guild.ownerId) {
-    acknowledgements.push('Server Owner');
-  }
-
-  const embed = new EmbedBuilder()
-
-    .setColor('#ff0000')
-
-    .setAuthor({
-      name: member.user.tag,
-      iconURL: member.user.displayAvatarURL({
-        dynamic: true
-      })
-    })
-
-    .setThumbnail(
-      member.user.displayAvatarURL({
-        dynamic: true,
-        size: 1024
-      })
-    )
-
-    .addFields(
-
-      {
-        name: 'Joined',
-        value:
-`<t:${parseInt(member.joinedTimestamp / 1000)}:F>`,
-        inline: false
-      },
-
-      {
-        name: 'Registered',
-        value:
-`<t:${parseInt(member.user.createdTimestamp / 1000)}:F>`,
-        inline: false
-      },
-
-      {
-        name: `Roles [${roles.size}]`,
-        value: roleText || 'None',
-        inline: false
-      },
-
-      {
-        name: 'Key Permissions',
-        value:
-          permissions.join(', ') || 'None',
-        inline: false
-      },
-
-      {
-        name: 'Acknowledgements',
-        value:
-          acknowledgements.join(', ') || 'None',
-        inline: false
-      }
-
-    )
-
-    .setImage(
-      member.user.displayAvatarURL({
-        dynamic: true,
-        size: 1024
-      })
-    )
-
-    .setFooter({
-      text:
-`ID: ${member.user.id} • Today at ${new Date().toLocaleTimeString()}`
-    })
-
-    .setTimestamp();
-
-  return message.channel.send({
-    embeds: [embed],
-    allowedMentions: {
-      users: []
-    }
-  });
-
-}
-
 // MESSAGE COMMANDS
 client.on('messageCreate', async (message) => {
 
@@ -954,6 +814,184 @@ client.on(
           'Sent emojis list.',
         ephemeral: true
       });
+    }
+          
+       // USERINFO
+  if (command === 'userinfo' || command === 'ui') {
+
+    const member =
+      message.mentions.members.first() ||
+      message.member;
+
+    const user = member.user;
+
+    const roles = member.roles.cache
+      .filter(role => role.id !== message.guild.id)
+      .sort((a, b) => b.position - a.position);
+
+    let roleText = '';
+
+    if (roles.size > 15) {
+
+      roleText = 'Too many roles to show.';
+
+    } else if (roles.size === 0) {
+
+      roleText = 'None';
+
+    } else {
+
+      roleText = roles
+        .map(role => role.toString())
+        .join(', ');
+    }
+
+    // KEY PERMISSIONS
+    const permissions = [];
+
+    if (member.permissions.has('Administrator'))
+      permissions.push('Administrator');
+
+    if (member.permissions.has('ManageGuild'))
+      permissions.push('Manage Server');
+
+    if (member.permissions.has('ManageRoles'))
+      permissions.push('Manage Roles');
+
+    if (member.permissions.has('ManageChannels'))
+      permissions.push('Manage Channels');
+
+    if (member.permissions.has('ManageMessages'))
+      permissions.push('Manage Messages');
+
+    if (member.permissions.has('ManageWebhooks'))
+      permissions.push('Manage Webhooks');
+
+    if (member.permissions.has('ManageNicknames'))
+      permissions.push('Manage Nicknames');
+
+    if (member.permissions.has('ManageGuildExpressions'))
+      permissions.push('Manage Emojis and Stickers');
+
+    if (member.permissions.has('KickMembers'))
+      permissions.push('Kick Members');
+
+    if (member.permissions.has('BanMembers'))
+      permissions.push('Ban Members');
+
+    if (member.permissions.has('MentionEveryone'))
+      permissions.push('Mention Everyone');
+
+    if (member.permissions.has('ModerateMembers'))
+      permissions.push('Timeout Members');
+
+    // ACKNOWLEDGEMENTS
+    const acknowledgements = [];
+
+    if (member.id === message.guild.ownerId) {
+      acknowledgements.push('Server Owner');
+    }
+
+    if (hasRole(member, 'Owner')) {
+      acknowledgements.push('Owner');
+    }
+
+    if (hasRole(member, 'Admin')) {
+      acknowledgements.push('Admin');
+    }
+
+    if (hasRole(member, 'Moderator')) {
+      acknowledgements.push('Moderator');
+    }
+
+    const embed = new EmbedBuilder()
+
+      .setColor('#ff0000')
+
+      .setAuthor({
+        name: user.tag,
+        iconURL: user.displayAvatarURL({
+          dynamic: true
+        })
+      })
+
+      .setThumbnail(
+        user.displayAvatarURL({
+          dynamic: true,
+          size: 1024
+        })
+      )
+
+      .setDescription(
+`${user}
+@${user.username}`
+      )
+
+      .addFields(
+
+        {
+          name: 'Joined',
+          value:
+`<t:${Math.floor(member.joinedTimestamp / 1000)}:F>`,
+          inline: false
+        },
+
+        {
+          name: 'Registered',
+          value:
+`<t:${Math.floor(user.createdTimestamp / 1000)}:F>`,
+          inline: false
+        },
+
+        {
+          name: `Roles [${roles.size}]`,
+          value: roleText,
+          inline: false
+        },
+
+        {
+          name: 'Key Permissions',
+          value:
+            permissions.length > 0
+              ? permissions.join(', ')
+              : 'None',
+          inline: false
+        },
+
+        {
+          name: 'Acknowledgements',
+          value:
+            acknowledgements.length > 0
+              ? acknowledgements.join(', ')
+              : 'None',
+          inline: false
+        }
+
+      )
+
+      .setImage(
+        user.displayAvatarURL({
+          dynamic: true,
+          size: 1024
+        })
+      )
+
+      .setFooter({
+        text:
+`ID: ${user.id} • Today at ${new Date().toLocaleTimeString([], {
+  hour: '2-digit',
+  minute: '2-digit'
+})}`
+      })
+
+      .setTimestamp();
+
+    return message.channel.send({
+      embeds: [embed],
+      allowedMentions: {
+        users: []
+      }
+    });
     }
   }
 );
