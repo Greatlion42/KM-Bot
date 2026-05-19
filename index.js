@@ -68,7 +68,6 @@ client.on('messageCreate', async (message) => {
 
   if (message.author.bot) return;
   if (!message.guild) return;
-
   if (!message.content.startsWith(PREFIX)) return;
 
   const args = message.content
@@ -88,9 +87,7 @@ client.on('messageCreate', async (message) => {
     }
 
     if (!isOwnerOrAdmin(message.member)) {
-      return message.channel.send(
-        'No permission.'
-      );
+      return message.channel.send('No permission.');
     }
 
     if (args[0] === 'set') {
@@ -175,9 +172,7 @@ client.on('messageCreate', async (message) => {
   if (command === 'role') {
 
     if (!isOwnerOrAdmin(message.member)) {
-      return message.channel.send(
-        'No permission.'
-      );
+      return message.channel.send('No permission.');
     }
 
     const member =
@@ -227,9 +222,7 @@ client.on('messageCreate', async (message) => {
   if (command === 'purge') {
 
     if (!isOwnerOrAdmin(message.member)) {
-      return message.channel.send(
-        'No permission.'
-      );
+      return message.channel.send('No permission.');
     }
 
     const amount = parseInt(args[0]);
@@ -260,9 +253,7 @@ client.on('messageCreate', async (message) => {
   if (command === 'ban') {
 
     if (!isOwnerOrAdmin(message.member)) {
-      return message.channel.send(
-        'No permission.'
-      );
+      return message.channel.send('No permission.');
     }
 
     const member =
@@ -279,15 +270,12 @@ client.on('messageCreate', async (message) => {
     const embed = new EmbedBuilder()
       .setColor('#ff0000')
       .setDescription(
-        `🔨 **${member.user.tag}** has been banned.`
-      )
-      .setTimestamp();
+        `🔨 ${member.user.tag} has been banned.`
+      );
 
     return message.channel.send({
       embeds: [embed],
-      allowedMentions: {
-        users: []
-      }
+      allowedMentions: { users: [] }
     });
   }
 
@@ -295,9 +283,7 @@ client.on('messageCreate', async (message) => {
   if (command === 'unban') {
 
     if (!isOwnerOrAdmin(message.member)) {
-      return message.channel.send(
-        'No permission.'
-      );
+      return message.channel.send('No permission.');
     }
 
     if (!args[0]) {
@@ -306,28 +292,18 @@ client.on('messageCreate', async (message) => {
       );
     }
 
-    await message.guild.members.unban(
-      args[0]
+    await message.guild.members.unban(args[0]);
+
+    return message.channel.send(
+      '✅ User unbanned.'
     );
-
-    const embed = new EmbedBuilder()
-      .setColor('#00ff99')
-      .setDescription(
-        `✅ User unbanned successfully.`
-      );
-
-    return message.channel.send({
-      embeds: [embed]
-    });
   }
 
   // KICK
   if (command === 'kick') {
 
     if (!isOwnerOrAdmin(message.member)) {
-      return message.channel.send(
-        'No permission.'
-      );
+      return message.channel.send('No permission.');
     }
 
     const member =
@@ -341,17 +317,15 @@ client.on('messageCreate', async (message) => {
 
     await member.kick();
 
-    const embed = new EmbedBuilder()
-      .setColor('#ff0000')
-      .setDescription(
-        `👢 **${member.user.tag}** has been kicked.`
-      );
-
     return message.channel.send({
-      embeds: [embed],
-      allowedMentions: {
-        users: []
-      }
+      embeds: [
+        new EmbedBuilder()
+          .setColor('#ff0000')
+          .setDescription(
+            `👢 ${member.user.tag} has been kicked.`
+          )
+      ],
+      allowedMentions: { users: [] }
     });
   }
 
@@ -362,9 +336,7 @@ client.on('messageCreate', async (message) => {
       !isOwnerOrAdmin(message.member) &&
       !isModerator(message.member)
     ) {
-      return message.channel.send(
-        'No permission.'
-      );
+      return message.channel.send('No permission.');
     }
 
     const member =
@@ -385,43 +357,36 @@ client.on('messageCreate', async (message) => {
 
     const embed = new EmbedBuilder()
       .setColor('#ff0000')
-
       .setAuthor({
         name: 'KM Moderation',
         iconURL:
           client.user.displayAvatarURL()
       })
-
-      .setDescription(
-`✅ **${member.user.tag}** has been timed out for **${duration} minute(s)**.`
-      )
-
-      .addFields(
-        {
-          name: '👮 Moderator',
-          value: `${message.author.tag}`,
-          inline: true
-        },
-        {
-          name: '⏱ Duration',
-          value: `${duration} minute(s)`,
-          inline: true
-        }
-      )
-
       .setThumbnail(
         member.user.displayAvatarURL({
           dynamic: true
         })
       )
-
+      .setDescription(
+        `✅ ${member.user.tag} has been timed out for ${duration} minute(s).`
+      )
+      .addFields(
+        {
+          name: 'Moderator',
+          value: `${message.author.tag}`,
+          inline: true
+        },
+        {
+          name: 'Duration',
+          value: `${duration} minute(s)`,
+          inline: true
+        }
+      )
       .setTimestamp();
 
     return message.channel.send({
       embeds: [embed],
-      allowedMentions: {
-        users: []
-      }
+      allowedMentions: { users: [] }
     });
   }
 
@@ -432,9 +397,7 @@ client.on('messageCreate', async (message) => {
       !isOwnerOrAdmin(message.member) &&
       !isModerator(message.member)
     ) {
-      return message.channel.send(
-        'No permission.'
-      );
+      return message.channel.send('No permission.');
     }
 
     const member =
@@ -448,38 +411,15 @@ client.on('messageCreate', async (message) => {
 
     await member.timeout(null);
 
-    const embed = new EmbedBuilder()
-      .setColor('#00ff99')
-
-      .setAuthor({
-        name: 'KM Moderation',
-        iconURL:
-          client.user.displayAvatarURL()
-      })
-
-      .setDescription(
-`✅ **${member.user.tag}** has been unmuted.`
-      )
-
-      .addFields({
-        name: '👮 Moderator',
-        value: `${message.author.tag}`,
-        inline: true
-      })
-
-      .setThumbnail(
-        member.user.displayAvatarURL({
-          dynamic: true
-        })
-      )
-
-      .setTimestamp();
-
     return message.channel.send({
-      embeds: [embed],
-      allowedMentions: {
-        users: []
-      }
+      embeds: [
+        new EmbedBuilder()
+          .setColor('#00ff99')
+          .setDescription(
+            `✅ ${member.user.tag} has been unmuted.`
+          )
+      ],
+      allowedMentions: { users: [] }
     });
   }
 
@@ -488,31 +428,29 @@ client.on('messageCreate', async (message) => {
 
     const embed = new EmbedBuilder()
       .setColor('#ff0000')
-      .setTitle(
-        '📌 Krunker Mumbai OFFICIAL RULES'
-      )
-      .setDescription(
-`**Be Respectful**
-Treat all members with respect.
+      .setTitle('📌 Krunker Mumbai OFFICIAL RULES')
+      .setDescription(`
+**Be Respectful**
+Treat all members with respect. No racism, sexism, or hate speech.
 
 **No Spamming**
-Avoid flooding messages.
+Avoid flooding messages, images, or pings.
 
 **Use Channels Properly**
-Use channels correctly.
+Keep topics in the correct channels.
 
 **Voice Chat Etiquette**
-No mic spam or loud music.
+No ear rape, loud music, or mic spam.
 
 **Follow Staff Instructions**
-Listen to staff.
+Ignoring staff can lead to punishment.
 
 **Keep it Safe**
-No NSFW or gore.
+No NSFW content or gore.
 
 **Have Fun!**
-Compete hard, chill harder.`
-      );
+Compete hard, chill harder.
+`);
 
     return message.channel.send({
       embeds: [embed]
@@ -524,15 +462,13 @@ Compete hard, chill harder.`
 
     const embed = new EmbedBuilder()
       .setColor('#ff0000')
-      .setTitle(
-        '🎯 Pickup Rules'
-      )
-      .setDescription(
-`Play properly — no trolling or throwing
-Do not leave matches midway
-No fake reports
-Only weapon skins allowed
-Stay until final results screen
+      .setTitle('🎯 Pickup Rules')
+      .setDescription(`
+Play properly — no trolling, griefing, or throwing.
+Do not leave matches midway.
+No reporting losses before the match ends.
+Only weapon skins are allowed.
+Stay until the final results screen.
 
 **Allowed Classes**
 Triggerman
@@ -553,270 +489,15 @@ Spray N Pray
 **Penalties**
 Dodging → 20min
 Leaving → 20min
-Wrong reports → 30min`
-      );
+Wrong reports → 30min
+`);
 
     return message.channel.send({
       embeds: [embed]
     });
   }
 
-  // ROLES
-  if (command === 'roles') {
-
-    const roles =
-      message.guild.roles.cache
-        .sort(
-          (a, b) =>
-            b.position - a.position
-        )
-        .map(role => role.toString());
-
-    const chunks = [];
-
-    while (roles.length) {
-      chunks.push(
-        roles.splice(0, 50).join('\n')
-      );
-    }
-
-    for (const chunk of chunks) {
-
-      const embed = new EmbedBuilder()
-        .setColor('#ff0000')
-        .setTitle(
-          `Roles [${message.guild.roles.cache.size}]`
-        )
-        .setDescription(chunk);
-
-      await message.channel.send({
-        embeds: [embed]
-      });
-    }
-  }
-
-  // SERVERINFO
-  if (command === 'serverinfo') {
-
-    const guild = message.guild;
-
-    const textChannels =
-      guild.channels.cache.filter(
-        c =>
-          c.type ===
-          ChannelType.GuildText
-      ).size;
-
-    const voiceChannels =
-      guild.channels.cache.filter(
-        c =>
-          c.type ===
-          ChannelType.GuildVoice
-      ).size;
-
-    const categories =
-      guild.channels.cache.filter(
-        c =>
-          c.type ===
-          ChannelType.GuildCategory
-      ).size;
-
-    const embed = new EmbedBuilder()
-
-      .setColor('#ff0000')
-
-      .setAuthor({
-        name: guild.name,
-        iconURL:
-          guild.iconURL({
-            dynamic: true
-          })
-      })
-
-      .setThumbnail(
-        guild.iconURL({
-          dynamic: true,
-          size: 1024
-        })
-      )
-
-      .addFields(
-
-        {
-          name: '👑 Owner',
-          value: `<@${guild.ownerId}>`,
-          inline: true
-        },
-
-        {
-          name: '👥 Members',
-          value: `${guild.memberCount}`,
-          inline: true
-        },
-
-        {
-          name: '🎭 Roles',
-          value: `${guild.roles.cache.size}`,
-          inline: true
-        },
-
-        {
-          name: '📂 Categories',
-          value: `${categories}`,
-          inline: true
-        },
-
-        {
-          name: '💬 Text Channels',
-          value: `${textChannels}`,
-          inline: true
-        },
-
-        {
-          name: '🔊 Voice Channels',
-          value: `${voiceChannels}`,
-          inline: true
-        }
-
-      )
-
-      .setFooter({
-        text:
-`ID: ${guild.id}`
-      })
-
-      .setTimestamp();
-
-    const row =
-      new ActionRowBuilder()
-        .addComponents(
-
-          new ButtonBuilder()
-            .setCustomId(
-              'roles_btn'
-            )
-            .setLabel(
-              `Roles`
-            )
-            .setStyle(
-              ButtonStyle.Danger
-            ),
-
-          new ButtonBuilder()
-            .setCustomId(
-              'emojis_btn'
-            )
-            .setLabel(
-              `Emojis`
-            )
-            .setStyle(
-              ButtonStyle.Secondary
-            )
-
-        );
-
-    return message.channel.send({
-      embeds: [embed],
-      components: [row]
-    });
-  }
-
-});
-
-// BUTTONS
-client.on(
-  'interactionCreate',
-  async interaction => {
-
-    if (!interaction.isButton()) return;
-
-    // ROLES BUTTON
-    if (
-      interaction.customId ===
-      'roles_btn'
-    ) {
-
-      const roles =
-        interaction.guild.roles.cache
-          .sort(
-            (a, b) =>
-              b.position - a.position
-          )
-          .map(
-            role => role.toString()
-          );
-
-      const chunks = [];
-
-      while (roles.length) {
-        chunks.push(
-          roles.splice(
-            0,
-            50
-          ).join('\n')
-        );
-      }
-
-      for (const chunk of chunks) {
-
-        const embed =
-          new EmbedBuilder()
-            .setColor('#ff0000')
-            .setTitle(
-`Roles [${interaction.guild.roles.cache.size}]`
-            )
-            .setDescription(chunk);
-
-        await interaction.channel.send({
-          embeds: [embed]
-        });
-      }
-
-      return interaction.reply({
-        content:
-          'Sent roles list.',
-        ephemeral: true
-      });
-    }
-
-    // EMOJIS BUTTON
-    if (
-      interaction.customId ===
-      'emojis_btn'
-    ) {
-
-      const emojis =
-        interaction.guild.emojis.cache
-          .map(
-            emoji =>
-              emoji.toString()
-          );
-
-      const chunks = [];
-
-      while (emojis.length) {
-        chunks.push(
-          emojis.splice(
-            0,
-            50
-          ).join(' ')
-        );
-      }
-
-      for (const chunk of chunks) {
-        await interaction.channel.send(
-          chunk
-        );
-      }
-
-      return interaction.reply({
-        content:
-          'Sent emojis list.',
-        ephemeral: true
-      });
-    }
-          
-       // USERINFO
+  // USERINFO
   if (command === 'userinfo' || command === 'ui') {
 
     const member =
@@ -832,21 +513,15 @@ client.on(
     let roleText = '';
 
     if (roles.size > 15) {
-
       roleText = 'Too many roles to show.';
-
     } else if (roles.size === 0) {
-
       roleText = 'None';
-
     } else {
-
       roleText = roles
         .map(role => role.toString())
         .join(', ');
     }
 
-    // KEY PERMISSIONS
     const permissions = [];
 
     if (member.permissions.has('Administrator'))
@@ -864,135 +539,219 @@ client.on(
     if (member.permissions.has('ManageMessages'))
       permissions.push('Manage Messages');
 
-    if (member.permissions.has('ManageWebhooks'))
-      permissions.push('Manage Webhooks');
-
-    if (member.permissions.has('ManageNicknames'))
-      permissions.push('Manage Nicknames');
-
-    if (member.permissions.has('ManageGuildExpressions'))
-      permissions.push('Manage Emojis and Stickers');
-
     if (member.permissions.has('KickMembers'))
       permissions.push('Kick Members');
 
     if (member.permissions.has('BanMembers'))
       permissions.push('Ban Members');
 
-    if (member.permissions.has('MentionEveryone'))
-      permissions.push('Mention Everyone');
-
-    if (member.permissions.has('ModerateMembers'))
-      permissions.push('Timeout Members');
-
-    // ACKNOWLEDGEMENTS
-    const acknowledgements = [];
-
-    if (member.id === message.guild.ownerId) {
-      acknowledgements.push('Server Owner');
-    }
-
-    if (hasRole(member, 'Owner')) {
-      acknowledgements.push('Owner');
-    }
-
-    if (hasRole(member, 'Admin')) {
-      acknowledgements.push('Admin');
-    }
-
-    if (hasRole(member, 'Moderator')) {
-      acknowledgements.push('Moderator');
-    }
-
     const embed = new EmbedBuilder()
-
       .setColor('#ff0000')
-
       .setAuthor({
         name: user.tag,
         iconURL: user.displayAvatarURL({
           dynamic: true
         })
       })
-
       .setThumbnail(
         user.displayAvatarURL({
-          dynamic: true,
-          size: 1024
+          dynamic: true
         })
       )
-
-      .setDescription(
-`${user}
-@${user.username}`
-      )
-
+      .setDescription(`${user}`)
       .addFields(
-
         {
           name: 'Joined',
           value:
-`<t:${Math.floor(member.joinedTimestamp / 1000)}:F>`,
-          inline: false
+            `<t:${Math.floor(member.joinedTimestamp / 1000)}:F>`
         },
-
         {
           name: 'Registered',
           value:
-`<t:${Math.floor(user.createdTimestamp / 1000)}:F>`,
-          inline: false
+            `<t:${Math.floor(user.createdTimestamp / 1000)}:F>`
         },
-
         {
           name: `Roles [${roles.size}]`,
-          value: roleText,
-          inline: false
+          value: roleText
         },
-
         {
           name: 'Key Permissions',
           value:
             permissions.length > 0
               ? permissions.join(', ')
-              : 'None',
-          inline: false
-        },
-
-        {
-          name: 'Acknowledgements',
-          value:
-            acknowledgements.length > 0
-              ? acknowledgements.join(', ')
-              : 'None',
-          inline: false
+              : 'None'
         }
-
       )
-
       .setImage(
         user.displayAvatarURL({
           dynamic: true,
           size: 1024
         })
       )
-
       .setFooter({
-        text:
-`ID: ${user.id} • Today at ${new Date().toLocaleTimeString([], {
-  hour: '2-digit',
-  minute: '2-digit'
-})}`
-      })
-
-      .setTimestamp();
+        text: `ID: ${user.id}`
+      });
 
     return message.channel.send({
       embeds: [embed],
-      allowedMentions: {
-        users: []
-      }
+      allowedMentions: { users: [] }
     });
+  }
+
+  // SERVERINFO
+  if (command === 'serverinfo') {
+
+    const guild = message.guild;
+
+    const textChannels = guild.channels.cache.filter(
+      c => c.type === ChannelType.GuildText
+    ).size;
+
+    const voiceChannels = guild.channels.cache.filter(
+      c => c.type === ChannelType.GuildVoice
+    ).size;
+
+    const categories = guild.channels.cache.filter(
+      c => c.type === ChannelType.GuildCategory
+    ).size;
+
+    const embed = new EmbedBuilder()
+      .setColor('#ff0000')
+      .setAuthor({
+        name: guild.name,
+        iconURL: guild.iconURL({ dynamic: true })
+      })
+      .setThumbnail(
+        guild.iconURL({
+          dynamic: true,
+          size: 1024
+        })
+      )
+      .addFields(
+        {
+          name: '👑 Owner',
+          value: `<@${guild.ownerId}>`,
+          inline: true
+        },
+        {
+          name: '👥 Members',
+          value: `${guild.memberCount}`,
+          inline: true
+        },
+        {
+          name: '🎭 Roles',
+          value: `${guild.roles.cache.size}`,
+          inline: true
+        },
+        {
+          name: '📂 Categories',
+          value: `${categories}`,
+          inline: true
+        },
+        {
+          name: '💬 Text Channels',
+          value: `${textChannels}`,
+          inline: true
+        },
+        {
+          name: '🔊 Voice Channels',
+          value: `${voiceChannels}`,
+          inline: true
+        }
+      )
+      .setFooter({
+        text: `ID: ${guild.id}`
+      });
+
+    const row = new ActionRowBuilder()
+      .addComponents(
+        new ButtonBuilder()
+          .setCustomId('roles_btn')
+          .setLabel('Roles')
+          .setStyle(ButtonStyle.Danger),
+
+        new ButtonBuilder()
+          .setCustomId('emojis_btn')
+          .setLabel('Emojis')
+          .setStyle(ButtonStyle.Secondary)
+      );
+
+    return message.channel.send({
+      embeds: [embed],
+      components: [row]
+    });
+  }
+
+});
+
+// BUTTONS
+client.on(
+  'interactionCreate',
+  async interaction => {
+
+    if (!interaction.isButton()) return;
+
+    // ROLES BUTTON
+    if (interaction.customId === 'roles_btn') {
+
+      const roles =
+        interaction.guild.roles.cache
+          .sort((a, b) => b.position - a.position)
+          .map(role => role.toString());
+
+      const chunks = [];
+
+      while (roles.length) {
+        chunks.push(
+          roles.splice(0, 50).join('\n')
+        );
+      }
+
+      for (const chunk of chunks) {
+
+        const embed = new EmbedBuilder()
+          .setColor('#ff0000')
+          .setTitle(
+            `Roles [${interaction.guild.roles.cache.size}]`
+          )
+          .setDescription(chunk);
+
+        await interaction.channel.send({
+          embeds: [embed]
+        });
+      }
+
+      return interaction.reply({
+        content: 'Sent roles list.',
+        ephemeral: true
+      });
     }
+
+    // EMOJIS BUTTON
+    if (interaction.customId === 'emojis_btn') {
+
+      const emojis =
+        interaction.guild.emojis.cache
+          .map(emoji => emoji.toString());
+
+      const chunks = [];
+
+      while (emojis.length) {
+        chunks.push(
+          emojis.splice(0, 50).join(' ')
+        );
+      }
+
+      for (const chunk of chunks) {
+        await interaction.channel.send(chunk);
+      }
+
+      return interaction.reply({
+        content: 'Sent emojis list.',
+        ephemeral: true
+      });
+    }
+
   }
 );
 
