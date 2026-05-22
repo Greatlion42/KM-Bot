@@ -18,8 +18,8 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent,
-    GatewayIntentBits.GuildPresences
+    GatewayIntentBits.GuildPresences,
+    GatewayIntentBits.MessageContent
   ]
 });
 
@@ -30,22 +30,18 @@ const client = new Client({
 let PREFIX = '?';
 
 if (fs.existsSync('./prefix.json')) {
-
   PREFIX = JSON.parse(
     fs.readFileSync('./prefix.json')
   ).prefix;
-
 }
 
 function savePrefix() {
-
   fs.writeFileSync(
     './prefix.json',
     JSON.stringify({
       prefix: PREFIX
     })
   );
-
 }
 
 // =========================
@@ -53,17 +49,14 @@ function savePrefix() {
 // =========================
 
 function hasRole(member, roleName) {
-
   return member.roles.cache.some(
     role =>
       role.name.toLowerCase() ===
       roleName.toLowerCase()
   );
-
 }
 
 function isOwnerOrAdmin(member) {
-
   return (
     hasRole(member, 'Owner') ||
     hasRole(member, 'Admin') ||
@@ -71,25 +64,22 @@ function isOwnerOrAdmin(member) {
       PermissionsBitField.Flags.Administrator
     )
   );
-
 }
 
 function isModerator(member) {
-
   return (
     hasRole(member, 'Moderator') ||
     member.permissions.has(
       PermissionsBitField.Flags.ModerateMembers
     )
   );
-
 }
 
 // =========================
-// READY
+// READY EVENT
 // =========================
 
-client.once('clientReady', () => {
+client.once('clientReady', async () => {
 
   console.log(
     `${client.user.tag} is online!`
@@ -111,90 +101,97 @@ client.once('clientReady', () => {
 // WELCOME SYSTEM
 // =========================
 
-client.on('guildMemberAdd', async member => {
+client.on(
+  'guildMemberAdd',
+  async member => {
 
-  const welcomeChannel =
-    member.guild.channels.cache.find(
-      c =>
-        c.name.includes('welcome') &&
-        c.type === ChannelType.GuildText
-    );
+    const channel =
+      member.guild.channels.cache.find(
+        c =>
+          c.name.includes('welcome') &&
+          c.type === ChannelType.GuildText
+      );
 
-  if (!welcomeChannel) return;
+    if (!channel) return;
 
-  const embed = new EmbedBuilder()
+    const embed =
+      new EmbedBuilder()
 
-    .setColor('#ff0000')
+        .setColor('#ff0000')
 
-    .setTitle(
-      '🎉 Welcome to Krunker Mumbai'
-    )
+        .setTitle(
+          '🎉 Welcome to Krunker Mumbai'
+        )
 
-    .setDescription(
+        .setDescription(
 `Welcome ${member}
 
 Read the rules and enjoy your stay.`
-    )
+        )
 
-    .setThumbnail(
-      member.user.displayAvatarURL({
-        dynamic: true
-      })
-    )
+        .setThumbnail(
+          member.user.displayAvatarURL({
+            dynamic: true
+          })
+        )
 
-    .setFooter({
-      text:
-        `Member #${member.guild.memberCount}`
-    })
+        .setFooter({
+          text:
+            `Member #${member.guild.memberCount}`
+        })
 
-    .setTimestamp();
+        .setTimestamp();
 
-  welcomeChannel.send({
-    embeds: [embed]
-  });
+    channel.send({
+      embeds: [embed]
+    });
 
-});
+  }
+);
 
 // =========================
-// MESSAGE EVENT
+// MESSAGE CREATE
 // =========================
 
-client.on('messageCreate', async message => {
+client.on(
+  'messageCreate',
+  async message => {
 
-  if (message.author.bot) return;
-  if (!message.guild) return;
+    if (message.author.bot) return;
+    if (!message.guild) return;
 
-  // =========================
-  // PREFIX CHECK
-  // =========================
+    // =========================
+    // PREFIX CHECK
+    // =========================
 
-  if (
-    !message.content.startsWith(PREFIX)
-  ) return;
+    if (
+      !message.content.startsWith(PREFIX)
+    ) return;
 
-  const args = message.content
-    .slice(PREFIX.length)
-    .trim()
-    .split(/ +/);
+    const args = message.content
+      .slice(PREFIX.length)
+      .trim()
+      .split(/ +/);
 
-  const command =
-    args.shift()?.toLowerCase();
+    const command =
+      args.shift()?.toLowerCase();
 
-  // =========================
-  // HELP
-  // =========================
+    // =========================
+    // HELP
+    // =========================
 
-  if (command === 'help') {
+    if (command === 'help') {
 
-    const embed = new EmbedBuilder()
+      const embed =
+        new EmbedBuilder()
 
-      .setColor('#ff0000')
+          .setColor('#ff0000')
 
-      .setTitle(
-        '📖 KM BOT COMMANDS'
-      )
+          .setTitle(
+            '📖 KM BOT COMMANDS'
+          )
 
-      .setDescription(`
+          .setDescription(`
 ⚙️ Utility
 \`${PREFIX}help\`
 \`${PREFIX}ping\`
@@ -203,9 +200,10 @@ client.on('messageCreate', async message => {
 \`${PREFIX}serverinfo\`
 \`${PREFIX}membercount\`
 
-📢 Announcements
+📢 Management
 \`${PREFIX}announce\`
 \`${PREFIX}say\`
+\`${PREFIX}partnerships\`
 
 🛡 Moderation
 \`${PREFIX}ban\`
@@ -216,801 +214,835 @@ client.on('messageCreate', async message => {
 \`${PREFIX}lock\`
 \`${PREFIX}unlock\`
 
-🎫 Server
+📜 Server
 \`${PREFIX}rules\`
 \`${PREFIX}pickuprules\`
-\`${PREFIX}partnerships\`
-\`${PREFIX}prefix\`
-      `)
+          `)
 
-      .setFooter({
-        text: 'Krunker Mumbai'
-      })
+          .setFooter({
+            text: 'Krunker Mumbai'
+          })
 
-      .setTimestamp();
+          .setTimestamp();
 
-    return message.channel.send({
-      embeds: [embed]
-    });
+      return message.channel.send({
+        embeds: [embed]
+      });
+    }
 
-  }
+    // =========================
+    // PING
+    // =========================
 
-  // =========================
-  // PING
-  // =========================
+    if (command === 'ping') {
 
-  if (command === 'ping') {
-
-    return message.channel.send(
-      `🏓 Pong: ${client.ws.ping}ms`
-    );
-
-  }
-
-  // =========================
-  // ANNOUNCE
-  // =========================
-
-  if (command === 'announce') {
-
-    if (
-      !isOwnerOrAdmin(message.member)
-    ) {
       return message.channel.send(
-        'No permission.'
+        `🏓 Pong: ${client.ws.ping}ms`
       );
     }
 
-    const content =
-      message.content.slice(
-        PREFIX.length + command.length
-      ).trim();
+    // =========================
+    // SAY
+    // =========================
 
-    const matches = [
-      ...content.matchAll(
-        /"([^"]+)"/g
-      )
-    ].map(m => m[1]);
+    if (command === 'say') {
 
-    if (matches.length < 4) {
+      if (
+        !isOwnerOrAdmin(
+          message.member
+        )
+      ) return;
 
-      return message.channel.send(
+      const text =
+        args.join(' ');
+
+      if (!text) return;
+
+      await message.delete().catch(() => {});
+
+      return message.channel.send(text);
+    }
+
+    // =========================
+    // ANNOUNCE
+    // =========================
+
+    if (command === 'announce') {
+
+      if (
+        !isOwnerOrAdmin(
+          message.member
+        )
+      ) {
+        return message.channel.send(
+          'No permission.'
+        );
+      }
+
+      const raw =
+        message.content
+          .slice(
+            PREFIX.length +
+            command.length
+          )
+          .trim();
+
+      const matches =
+        [
+          ...raw.matchAll(
+            /"([^"]+)"/g
+          )
+        ].map(
+          m => m[1]
+        );
+
+      if (matches.length < 4) {
+
+        return message.channel.send(
 `Usage:
 ?announce "message" "channel" "role/everyone" "team name"
 
 Example:
 ?announce "Queue open now." "#general" "everyone" "Krunker Mumbai Moderation Team"`
-      );
-
-    }
-
-    const [
-      announcementText,
-      channelInput,
-      roleInput,
-      fromInput
-    ] = matches;
-
-    let targetChannel =
-      message.mentions.channels.first();
-
-    if (!targetChannel) {
-
-      targetChannel =
-        message.guild.channels.cache.find(
-          c =>
-            c.id === channelInput ||
-            c.name ===
-              channelInput.replace('#', '')
         );
-
-    }
-
-    if (!targetChannel) {
-
-      return message.channel.send(
-        'Channel not found.'
-      );
-
-    }
-
-    let pingText = '';
-
-    if (
-      roleInput.toLowerCase() ===
-      'everyone'
-    ) {
-
-      pingText = '@everyone';
-
-    } else if (
-      roleInput.toLowerCase() ===
-      'here'
-    ) {
-
-      pingText = '@here';
-
-    } else {
-
-      const role =
-        message.guild.roles.cache.find(
-          r =>
-            r.name.toLowerCase() ===
-            roleInput.toLowerCase()
-        );
-
-      if (!role) {
-
-        return message.channel.send(
-          'Role not found.'
-        );
-
       }
 
-      pingText = `<@&${role.id}>`;
+      const [
+        announcementText,
+        channelInput,
+        roleInput,
+        fromInput
+      ] = matches;
 
-    }
+      let targetChannel =
+        message.mentions.channels.first();
 
-    const embed = new EmbedBuilder()
+      if (!targetChannel) {
 
-      .setColor('#ff0000')
+        targetChannel =
+          message.guild.channels.cache.find(
+            c =>
+              c.id === channelInput ||
+              c.name ===
+              channelInput.replace(
+                '#',
+                ''
+              )
+          );
+      }
 
-      .setAuthor({
-        name: fromInput,
-        iconURL:
-          message.guild.iconURL({
-            dynamic: true
+      if (!targetChannel) {
+
+        return message.channel.send(
+          'Channel not found.'
+        );
+      }
+
+      let pingText = '';
+
+      if (
+        roleInput.toLowerCase() ===
+        'everyone'
+      ) {
+
+        pingText = '@everyone';
+
+      } else if (
+        roleInput.toLowerCase() ===
+        'here'
+      ) {
+
+        pingText = '@here';
+
+      } else {
+
+        const role =
+          message.guild.roles.cache.find(
+            r =>
+              r.name.toLowerCase() ===
+              roleInput.toLowerCase()
+          );
+
+        if (!role) {
+
+          return message.channel.send(
+            'Role not found.'
+          );
+        }
+
+        pingText =
+          `<@&${role.id}>`;
+      }
+
+      const embed =
+        new EmbedBuilder()
+
+          .setColor('#ff0000')
+
+          .setAuthor({
+            name: fromInput,
+            iconURL:
+              message.guild.iconURL({
+                dynamic: true
+              })
           })
-      })
 
-      .setThumbnail(
-        message.guild.iconURL({
-          dynamic: true,
-          size: 1024
-        })
-      )
-
-      .setDescription(
+          .setDescription(
 `${announcementText}
 
 - ${fromInput}`
-      )
+          )
 
-      .setFooter({
-        text: 'Krunker Mumbai'
-      })
+          .setThumbnail(
+            message.guild.iconURL({
+              dynamic: true,
+              size: 1024
+            })
+          )
 
-      .setTimestamp();
+          .setFooter({
+            text: 'Krunker Mumbai'
+          })
 
-    await targetChannel.send({
+          .setTimestamp();
 
-      content: `${pingText},`,
-
-      embeds: [embed],
-
-      allowedMentions: {
-        parse: ['roles', 'everyone']
-      }
-
-    });
-
-    return message.channel.send(
-      `✅ Announcement sent to ${targetChannel}`
-    );
-
-  }
-
-  // =========================
-  // SAY
-  // =========================
-
-  if (command === 'say') {
-
-    if (
-      !isOwnerOrAdmin(message.member)
-    ) return;
-
-    const text = args.join(' ');
-
-    if (!text) return;
-
-    await message.delete().catch(() => {});
-
-    return message.channel.send(text);
-
-  }
-
-  // =========================
-  // PREFIX
-  // =========================
-
-  if (command === 'prefix') {
-
-    if (
-      !isOwnerOrAdmin(message.member)
-    ) {
-      return message.channel.send(
-        'No permission.'
-      );
-    }
-
-    if (!args[0]) {
-
-      return message.channel.send(
-        `Current Prefix: ${PREFIX}`
-      );
-
-    }
-
-    if (args[0] === 'set') {
-
-      if (!args[1]) {
-        return message.channel.send(
-          'Provide a new prefix.'
-        );
-      }
-
-      PREFIX = args[1];
-
-      savePrefix();
-
-      return message.channel.send(
-        `✅ Prefix changed to ${PREFIX}`
-      );
-
-    }
-
-    if (args[0] === 'reset') {
-
-      PREFIX = '?';
-
-      savePrefix();
-
-      return message.channel.send(
-        '✅ Prefix reset.'
-      );
-
-    }
-
-  }
-
-  // =========================
-  // AVATAR
-  // =========================
-
-  if (
-    command === 'avatar' ||
-    command === 'av'
-  ) {
-
-    const user =
-      message.mentions.users.first() ||
-      message.author;
-
-    const avatarURL =
-      user.displayAvatarURL({
-        dynamic: true,
-        size: 1024
+      await targetChannel.send({
+        content: `${pingText},`,
+        embeds: [embed],
+        allowedMentions: {
+          parse: [
+            'roles',
+            'everyone'
+          ]
+        }
       });
 
-    const embed = new EmbedBuilder()
+      return message.channel.send(
+        `✅ Announcement sent to ${targetChannel}`
+      );
+    }
 
-      .setColor('#ff0000')
+    // =========================
+    // PREFIX
+    // =========================
 
-      .setAuthor({
-        name:
-          `${user.username}'s Avatar`
-      })
+    if (command === 'prefix') {
 
-      .setImage(avatarURL)
-
-      .setFooter({
-        text: `ID: ${user.id}`
-      })
-
-      .setTimestamp();
-
-    const row =
-      new ActionRowBuilder()
-        .addComponents(
-          new ButtonBuilder()
-            .setLabel(
-              'Open Avatar'
-            )
-            .setStyle(
-              ButtonStyle.Link
-            )
-            .setURL(avatarURL)
+      if (
+        !isOwnerOrAdmin(
+          message.member
+        )
+      ) {
+        return message.channel.send(
+          'No permission.'
         );
+      }
 
-    return message.channel.send({
-      embeds: [embed],
-      components: [row]
-    });
+      if (!args[0]) {
 
-  }
-
-  // =========================
-  // MEMBERCOUNT
-  // =========================
-
-  if (
-    command === 'membercount'
-  ) {
-
-    const embed =
-      new EmbedBuilder()
-
-        .setColor('#ff0000')
-
-        .setDescription(
-`👥 Members: **${message.guild.memberCount}**`
+        return message.channel.send(
+          `Current Prefix: ${PREFIX}`
         );
+      }
 
-    return message.channel.send({
-      embeds: [embed]
-    });
+      if (
+        args[0] === 'set'
+      ) {
 
-  }
+        if (!args[1]) {
 
-  // =========================
-  // USERINFO
-  // =========================
+          return message.channel.send(
+            'Provide a prefix.'
+          );
+        }
 
-  if (
-    command === 'userinfo' ||
-    command === 'ui'
-  ) {
+        PREFIX = args[1];
 
-    const member =
-      message.mentions.members.first() ||
-      message.member;
+        savePrefix();
 
-    const embed =
-      new EmbedBuilder()
+        return message.channel.send(
+          `✅ Prefix changed to ${PREFIX}`
+        );
+      }
 
-        .setColor('#ff0000')
+      if (
+        args[0] === 'reset'
+      ) {
 
-        .setAuthor({
-          name:
-            member.user.tag,
-          iconURL:
+        PREFIX = '?';
+
+        savePrefix();
+
+        return message.channel.send(
+          '✅ Prefix reset.'
+        );
+      }
+    }
+
+    // =========================
+    // AVATAR
+    // =========================
+
+    if (
+      command === 'avatar' ||
+      command === 'av'
+    ) {
+
+      const user =
+        message.mentions.users.first() ||
+        message.author;
+
+      const avatar =
+        user.displayAvatarURL({
+          dynamic: true,
+          size: 1024
+        });
+
+      const embed =
+        new EmbedBuilder()
+
+          .setColor('#ff0000')
+
+          .setAuthor({
+            name: user.tag
+          })
+
+          .setImage(avatar)
+
+          .setFooter({
+            text:
+              `ID: ${user.id}`
+          })
+
+          .setTimestamp();
+
+      const row =
+        new ActionRowBuilder()
+          .addComponents(
+
+            new ButtonBuilder()
+              .setLabel(
+                'Open Avatar'
+              )
+              .setStyle(
+                ButtonStyle.Link
+              )
+              .setURL(avatar)
+
+          );
+
+      return message.channel.send({
+        embeds: [embed],
+        components: [row]
+      });
+    }
+
+    // =========================
+    // MEMBERCOUNT
+    // =========================
+
+    if (
+      command === 'membercount'
+    ) {
+
+      const embed =
+        new EmbedBuilder()
+
+          .setColor('#ff0000')
+
+          .setDescription(
+`👥 Members: ${message.guild.memberCount}`
+          );
+
+      return message.channel.send({
+        embeds: [embed]
+      });
+    }
+
+    // =========================
+    // USERINFO
+    // =========================
+
+    if (
+      command === 'userinfo' ||
+      command === 'ui'
+    ) {
+
+      const member =
+        message.mentions.members.first() ||
+        message.member;
+
+      const embed =
+        new EmbedBuilder()
+
+          .setColor('#ff0000')
+
+          .setAuthor({
+            name:
+              member.user.tag,
+            iconURL:
+              member.user.displayAvatarURL({
+                dynamic: true
+              })
+          })
+
+          .setThumbnail(
             member.user.displayAvatarURL({
               dynamic: true
             })
-        })
+          )
 
-        .setThumbnail(
-          member.user.displayAvatarURL({
-            dynamic: true
-          })
-        )
-
-        .addFields(
-          {
-            name: 'Joined Server',
-            value:
+          .addFields(
+            {
+              name:
+                'Joined Server',
+              value:
 `<t:${Math.floor(member.joinedTimestamp / 1000)}:F>`
-          },
-          {
-            name: 'Created Account',
-            value:
+            },
+            {
+              name:
+                'Created Account',
+              value:
 `<t:${Math.floor(member.user.createdTimestamp / 1000)}:F>`
-          },
-          {
-            name: 'Highest Role',
-            value:
-              `${member.roles.highest}`
-          }
-        )
+            },
+            {
+              name:
+                'Highest Role',
+              value:
+                `${member.roles.highest}`
+            }
+          )
 
-        .setFooter({
-          text:
-            `ID: ${member.user.id}`
-        })
+          .setFooter({
+            text:
+              `ID: ${member.user.id}`
+          })
 
-        .setTimestamp();
+          .setTimestamp();
 
-    return message.channel.send({
-      embeds: [embed]
-    });
+      return message.channel.send({
+        embeds: [embed]
+      });
+    }
 
-  }
+    // =========================
+    // SERVERINFO
+    // =========================
 
-  // =========================
-  // SERVERINFO
-  // =========================
+    if (
+      command === 'serverinfo'
+    ) {
 
-  if (
-    command === 'serverinfo'
-  ) {
+      const guild =
+        message.guild;
 
-    const guild = message.guild;
+      const embed =
+        new EmbedBuilder()
 
-    const embed =
-      new EmbedBuilder()
+          .setColor('#ff0000')
 
-        .setColor('#ff0000')
+          .setAuthor({
+            name:
+              guild.name,
+            iconURL:
+              guild.iconURL({
+                dynamic: true
+              })
+          })
 
-        .setAuthor({
-          name: guild.name,
-          iconURL:
+          .setThumbnail(
             guild.iconURL({
               dynamic: true
             })
-        })
+          )
 
-        .setThumbnail(
-          guild.iconURL({
-            dynamic: true
+          .addFields(
+            {
+              name:
+                '👑 Owner',
+              value:
+                `<@${guild.ownerId}>`,
+              inline: true
+            },
+            {
+              name:
+                '👥 Members',
+              value:
+                `${guild.memberCount}`,
+              inline: true
+            },
+            {
+              name:
+                '🎭 Roles',
+              value:
+                `${guild.roles.cache.size}`,
+              inline: true
+            }
+          )
+
+          .setFooter({
+            text:
+              `ID: ${guild.id}`
           })
-        )
 
-        .addFields(
-          {
-            name: '👑 Owner',
-            value:
-              `<@${guild.ownerId}>`,
-            inline: true
-          },
-          {
-            name: '👥 Members',
-            value:
-              `${guild.memberCount}`,
-            inline: true
-          },
-          {
-            name: '🎭 Roles',
-            value:
-`${guild.roles.cache.size}`,
-            inline: true
-          }
-        )
+          .setTimestamp();
 
-        .setFooter({
-          text:
-            `ID: ${guild.id}`
-        })
+      const row =
+        new ActionRowBuilder()
+          .addComponents(
 
-        .setTimestamp();
+            new ButtonBuilder()
+              .setCustomId(
+                'roles_btn'
+              )
+              .setLabel(
+                'Roles'
+              )
+              .setStyle(
+                ButtonStyle.Danger
+              ),
 
-    const row =
-      new ActionRowBuilder()
-        .addComponents(
+            new ButtonBuilder()
+              .setCustomId(
+                'emojis_btn'
+              )
+              .setLabel(
+                'Emojis'
+              )
+              .setStyle(
+                ButtonStyle.Secondary
+              )
 
-          new ButtonBuilder()
-            .setCustomId(
-              'roles_btn'
-            )
-            .setLabel('Roles')
-            .setStyle(
-              ButtonStyle.Danger
-            ),
+          );
 
-          new ButtonBuilder()
-            .setCustomId(
-              'emojis_btn'
-            )
-            .setLabel('Emojis')
-            .setStyle(
-              ButtonStyle.Secondary
-            )
-
-        );
-
-    return message.channel.send({
-      embeds: [embed],
-      components: [row]
-    });
-
-  }
-
-  // =========================
-  // PURGE
-  // =========================
-
-  if (command === 'purge') {
-
-    if (
-      !isOwnerOrAdmin(message.member)
-    ) return;
-
-    const amount =
-      parseInt(args[0]);
-
-    if (!amount) {
-
-      return message.channel.send(
-        'Provide amount.'
-      );
-
+      return message.channel.send({
+        embeds: [embed],
+        components: [row]
+      });
     }
 
-    await message.channel.bulkDelete(
-      amount,
-      true
-    );
+    // =========================
+    // PURGE
+    // =========================
 
-    return message.channel.send(
-      `🗑 Deleted ${amount} messages.`
-    );
+    if (command === 'purge') {
 
-  }
+      if (
+        !isOwnerOrAdmin(
+          message.member
+        )
+      ) return;
 
-  // =========================
-  // BAN
-  // =========================
+      const amount =
+        parseInt(args[0]);
 
-  if (command === 'ban') {
+      if (!amount) {
 
-    if (
-      !isOwnerOrAdmin(message.member)
-    ) return;
+        return message.channel.send(
+          'Provide amount.'
+        );
+      }
 
-    const member =
-      message.mentions.members.first();
+      await message.channel.bulkDelete(
+        amount,
+        true
+      );
 
-    if (!member) return;
+      return message.channel.send(
+        `🗑 Deleted ${amount} messages.`
+      );
+    }
 
-    await member.ban();
+    // =========================
+    // BAN
+    // =========================
 
-    const embed =
-      new EmbedBuilder()
+    if (command === 'ban') {
 
-        .setColor('#ff0000')
+      if (
+        !isOwnerOrAdmin(
+          message.member
+        )
+      ) return;
 
-        .setDescription(
+      const member =
+        message.mentions.members.first();
+
+      if (!member) {
+
+        return message.channel.send(
+          'Mention a user.'
+        );
+      }
+
+      await member.ban();
+
+      const embed =
+        new EmbedBuilder()
+
+          .setColor('#ff0000')
+
+          .setDescription(
 `🔨 ${member.user.tag} has been banned.`
+          );
+
+      return message.channel.send({
+        embeds: [embed]
+      });
+    }
+
+    // =========================
+    // KICK
+    // =========================
+
+    if (command === 'kick') {
+
+      if (
+        !isOwnerOrAdmin(
+          message.member
+        )
+      ) return;
+
+      const member =
+        message.mentions.members.first();
+
+      if (!member) {
+
+        return message.channel.send(
+          'Mention a user.'
         );
+      }
 
-    return message.channel.send({
-      embeds: [embed]
-    });
+      await member.kick();
 
-  }
+      const embed =
+        new EmbedBuilder()
 
-  // =========================
-  // KICK
-  // =========================
+          .setColor('#ff0000')
 
-  if (command === 'kick') {
-
-    if (
-      !isOwnerOrAdmin(message.member)
-    ) return;
-
-    const member =
-      message.mentions.members.first();
-
-    if (!member) return;
-
-    await member.kick();
-
-    const embed =
-      new EmbedBuilder()
-
-        .setColor('#ff0000')
-
-        .setDescription(
+          .setDescription(
 `👢 ${member.user.tag} has been kicked.`
+          );
+
+      return message.channel.send({
+        embeds: [embed]
+      });
+    }
+
+    // =========================
+    // TIMEOUT
+    // =========================
+
+    if (command === 'timeout') {
+
+      if (
+        !isModerator(
+          message.member
+        )
+      ) return;
+
+      const member =
+        message.mentions.members.first();
+
+      const duration =
+        parseInt(args[1]) || 1;
+
+      if (!member) {
+
+        return message.channel.send(
+          'Mention a user.'
         );
+      }
 
-    return message.channel.send({
-      embeds: [embed]
-    });
+      await member.timeout(
+        duration * 60 * 1000
+      );
 
-  }
+      const embed =
+        new EmbedBuilder()
 
-  // =========================
-  // TIMEOUT
-  // =========================
+          .setColor('#ff0000')
 
-  if (command === 'timeout') {
-
-    if (
-      !isModerator(message.member)
-    ) return;
-
-    const member =
-      message.mentions.members.first();
-
-    if (!member) return;
-
-    const duration =
-      parseInt(args[1]) || 1;
-
-    await member.timeout(
-      duration * 60 * 1000
-    );
-
-    const embed =
-      new EmbedBuilder()
-
-        .setColor('#ff0000')
-
-        .setDescription(
+          .setDescription(
 `⏳ ${member.user.tag} timed out for ${duration} minute(s).`
+          );
+
+      return message.channel.send({
+        embeds: [embed]
+      });
+    }
+
+    // =========================
+    // UNTIMEOUT
+    // =========================
+
+    if (
+      command === 'untimeout'
+    ) {
+
+      if (
+        !isModerator(
+          message.member
+        )
+      ) return;
+
+      const member =
+        message.mentions.members.first();
+
+      if (!member) {
+
+        return message.channel.send(
+          'Mention a user.'
         );
-
-    return message.channel.send({
-      embeds: [embed]
-    });
-
-  }
-
-  // =========================
-  // UNTIMEOUT
-  // =========================
-
-  if (
-    command === 'untimeout'
-  ) {
-
-    if (
-      !isModerator(message.member)
-    ) return;
-
-    const member =
-      message.mentions.members.first();
-
-    if (!member) return;
-
-    await member.timeout(null);
-
-    return message.channel.send(
-      `✅ ${member.user.tag} unmuted.`
-    );
-
-  }
-
-  // =========================
-  // LOCK
-  // =========================
-
-  if (command === 'lock') {
-
-    if (
-      !isModerator(message.member)
-    ) return;
-
-    await message.channel.permissionOverwrites.edit(
-      message.guild.roles.everyone,
-      {
-        SendMessages: false
       }
-    );
 
-    return message.channel.send(
-      '🔒 Channel locked.'
-    );
+      await member.timeout(null);
 
-  }
+      return message.channel.send(
+        `✅ ${member.user.tag} unmuted.`
+      );
+    }
 
-  // =========================
-  // UNLOCK
-  // =========================
+    // =========================
+    // LOCK
+    // =========================
 
-  if (command === 'unlock') {
+    if (command === 'lock') {
 
-    if (
-      !isModerator(message.member)
-    ) return;
+      if (
+        !isModerator(
+          message.member
+        )
+      ) return;
 
-    await message.channel.permissionOverwrites.edit(
-      message.guild.roles.everyone,
-      {
-        SendMessages: true
-      }
-    );
+      await message.channel.permissionOverwrites.edit(
+        message.guild.roles.everyone,
+        {
+          SendMessages: false
+        }
+      );
 
-    return message.channel.send(
-      '🔓 Channel unlocked.'
-    );
+      return message.channel.send(
+        '🔒 Channel locked.'
+      );
+    }
 
-  }
+    // =========================
+    // UNLOCK
+    // =========================
 
-  // =========================
-  // RULES
-  // =========================
+    if (command === 'unlock') {
 
-  if (command === 'rules') {
+      if (
+        !isModerator(
+          message.member
+        )
+      ) return;
 
-    const embed = new EmbedBuilder()
+      await message.channel.permissionOverwrites.edit(
+        message.guild.roles.everyone,
+        {
+          SendMessages: true
+        }
+      );
 
-      .setColor('#ff0000')
+      return message.channel.send(
+        '🔓 Channel unlocked.'
+      );
+    }
 
-      .setTitle(
-        '📌 Krunker Mumbai OFFICIAL RULES'
-      )
+    // =========================
+    // RULES
+    // =========================
 
-      .setThumbnail(
-        message.guild.iconURL({
-          dynamic: true
-        })
-      )
+    if (command === 'rules') {
 
-      .setDescription(`
-## Be Respectful
+      const embed =
+        new EmbedBuilder()
+
+          .setColor('#ff0000')
+
+          .setTitle(
+'📌 Krunker Mumbai OFFICIAL RULES'
+          )
+
+          .setDescription(`
+**Be Respectful**
 Treat all members with respect. No racism, sexism, or hate speech.
 
-## No Spamming
+**No Spamming**
 Avoid flooding messages, images, or pings.
 
-## Use Channels Properly
+**Use Channels Properly**
 Keep topics in the correct channels (e.g., use #scrim-schedule for scrim updates).
 
-## Voice Chat Etiquette
+**Voice Chat Etiquette**
 No ear rape, loud music, or mic spam. Respect others in voice.
 
-## Follow Staff Instructions
+**Follow Staff Instructions**
 Admins and Mods are here to help. Ignoring them can lead to punishment.
 
-## Keep it Safe for All
+**Keep it Safe for All**
 No NSFW content, extreme gore, or offensive media.
 
-## Have Fun!
+**Have Fun!**
 We're a family. Compete hard, chill harder.
-      `)
+          `)
 
-      .setFooter({
-        text:
-          'Krunker Mumbai Rules'
-      })
+          .setFooter({
+            text: 'Krunker Mumbai'
+          })
 
-      .setTimestamp();
+          .setTimestamp();
 
-    return message.channel.send({
-      embeds: [embed]
-    });
+      return message.channel.send({
+        embeds: [embed]
+      });
+    }
 
-  }
+    // =========================
+    // PICKUP RULES
+    // =========================
 
-  // =========================
-  // PICKUP RULES
-  // =========================
+    if (
+      command === 'pickuprules'
+    ) {
 
-  if (command === 'pickuprules') {
+      const embed =
+        new EmbedBuilder()
 
-    const embed = new EmbedBuilder()
+          .setColor('#ff0000')
 
-      .setColor('#ff0000')
+          .setTitle(
+            '🎯 Pickup Rules'
+          )
 
-      .setTitle(
-        '🎯 Krunker Mumbai Pickup Rules'
-      )
-
-      .setThumbnail(
-        message.guild.iconURL({
-          dynamic: true
-        })
-      )
-
-      .setDescription(`
+          .setDescription(`
 ## Pickup Rules
-• Play properly — no trolling, griefing, or throwing (includes excessive TDM play)
+• Play properly — no trolling, griefing, or throwing
 • Do not leave matches midway
 • No reporting losses before the match ends
-• Only weapon skins are allowed (no other cosmetics)
-• Anonymous mode must be OFF (if verified)
-• Stay until the final results screen
-• If you need to leave, request a sub first
-• Don’t misuse bot commands during matches
+• Only weapon skins are allowed
+• Anonymous mode must be OFF
+• Stay until final results screen
+• Request a sub before leaving
+• Don’t misuse bot commands
 
 ## Allowed Classes
-• Triggerman (AR)
-• Hunter (Sniper)
-• Run N Gun (SMG)
-• Detective (Revolver)
-• Marksman (Semi-Auto)
-• Commando (FAMAS)
-• Spray N Pray (LMG)
-• Vince (Shotgun)
-• Agent (Akimbo Uzi)
-• Trooper (Blaster)
+• Triggerman
+• Hunter
+• Run N Gun
+• Detective
+• Marksman
+• Commando
+• Spray N Pray
+• Vince
+• Agent
+• Trooper
 
 ## Restricted (2v2 / 3v3)
-• Hunter (Sniper)
-• Spray N Pray (LMG)
+• Hunter
+• Spray N Pray
 
 ## Allowed Secondary Weapons
 • Pistol
@@ -1020,38 +1052,35 @@ We're a family. Compete hard, chill harder.
 • Techy-9
 
 ## Pickups Bot Commands
-• \`++\` → Join every queue at the same time
-• \`+2v2\` → Join a certain queue
-• \`--\` → Leave every queue at the same time
-• \`!pick @player\` → Captain picks players
-• \`!rl\` → Report match loss
-• \`!lb\` → View leaderboard
-• \`!rank\` → Check your rank
+• ++
+• +2v2
+• --
+• !pick @player
+• !rl
+• !lb
+• !rank
 
 ## Penalties
-• Class swapping mid-game → 10min
-• Unfair kicking/banning → 30min
-• Dodging games → 20min
-• Leaving games → 20min
-• Wrong game reports → 30min
+• Class swapping → 10min
+• Unfair kicking → 30min
+• Dodging → 20min
+• Leaving → 20min
+• Wrong reports → 30min
+          `)
 
-> Punishments may vary depending on the situation.
-      `)
+          .setFooter({
+            text: 'Krunker Mumbai Pickups'
+          })
 
-      .setFooter({
-        text:
-          'Krunker Mumbai Pickups'
-      })
+          .setTimestamp();
 
-      .setTimestamp();
-
-    return message.channel.send({
-      embeds: [embed]
-    });
+      return message.channel.send({
+        embeds: [embed]
+      });
+    }
 
   }
-
-
+);
 
 // =========================
 // BUTTON INTERACTIONS
@@ -1102,7 +1131,6 @@ client.on(
         embeds: [embed],
         ephemeral: true
       });
-
     }
 
     // =========================
@@ -1126,7 +1154,6 @@ client.on(
           emojis || 'No emojis.',
         ephemeral: true
       });
-
     }
 
   }
@@ -1136,4 +1163,6 @@ client.on(
 // LOGIN
 // =========================
 
-client.login(process.env.TOKEN);
+client.login(
+  process.env.TOKEN
+);
