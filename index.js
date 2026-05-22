@@ -80,28 +80,30 @@ if (
   '🤝・𝙋𝙖𝙧𝙩𝙣𝙚𝙧𝙨𝙝𝙞𝙥𝙨'
 ) {
 
-  // EXAMPLE MESSAGE:
-  // Partnering with KPC https://discord.gg/abc123
-
   const link =
     message.content.match(
       /(https?:\/\/[^\s]+)/g
     )?.[0];
 
+  if (!link) return;
+
   const text =
-    message.content.replace(link, '').trim();
+    message.content
+      .replace(link, '')
+      .trim();
 
   const embed = new EmbedBuilder()
 
     .setColor('#ff0000')
 
     .setDescription(
-      `## 🤝 ${text}\n\n[Click here to join](${link})`
+      `## 🤝 [${text}](${link})`
     )
 
     .setThumbnail(
       message.guild.iconURL({
-        dynamic: true
+        dynamic: true,
+        size: 1024
       })
     )
 
