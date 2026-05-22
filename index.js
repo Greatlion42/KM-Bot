@@ -310,14 +310,14 @@ client.on('messageCreate', async message => {
         .setDescription(`
 ## Official Servers
 
-🔴 [Competitive Krunker APAC](https://discord.gg/)
-🔴 [Krunker Pro Circuit](https://discord.gg/)
-🔴 [Official Krunker Hub](https://discord.gg/)
+Competitive Krunker Apac [CKA](https://discord.gg/)
+Krunker Pro Circuit [KPC](https://discord.gg/)
+Tiranga [TRNG](https://discord.gg/)
 
 ## Clans
 
-⚪ [8t Clan](https://discord.gg/)
-⚪ [NL Clan](https://discord.gg/)
+8t Clan [8t](https://discord.gg/)
+No Lifes/Nl [NL](https://discord.gg/)
 
 ## Featured
 
