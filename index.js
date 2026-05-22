@@ -18,8 +18,8 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.GuildPresences,
-    GatewayIntentBits.MessageContent
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildPresences
   ]
 });
 
@@ -30,18 +30,22 @@ const client = new Client({
 let PREFIX = '?';
 
 if (fs.existsSync('./prefix.json')) {
+
   PREFIX = JSON.parse(
     fs.readFileSync('./prefix.json')
   ).prefix;
+
 }
 
 function savePrefix() {
+
   fs.writeFileSync(
     './prefix.json',
     JSON.stringify({
       prefix: PREFIX
     })
   );
+
 }
 
 // =========================
@@ -49,12 +53,17 @@ function savePrefix() {
 // =========================
 
 function hasRole(member, roleName) {
+
   return member.roles.cache.some(
-    role => role.name === roleName
+    role =>
+      role.name.toLowerCase() ===
+      roleName.toLowerCase()
   );
+
 }
 
 function isOwnerOrAdmin(member) {
+
   return (
     hasRole(member, 'Owner') ||
     hasRole(member, 'Admin') ||
@@ -62,15 +71,18 @@ function isOwnerOrAdmin(member) {
       PermissionsBitField.Flags.Administrator
     )
   );
+
 }
 
 function isModerator(member) {
+
   return (
     hasRole(member, 'Moderator') ||
     member.permissions.has(
       PermissionsBitField.Flags.ModerateMembers
     )
   );
+
 }
 
 // =========================
@@ -78,6 +90,7 @@ function isModerator(member) {
 // =========================
 
 client.once('clientReady', () => {
+
   console.log(
     `${client.user.tag} is online!`
   );
@@ -91,6 +104,7 @@ client.once('clientReady', () => {
     ],
     status: 'online'
   });
+
 });
 
 // =========================
@@ -99,20 +113,22 @@ client.once('clientReady', () => {
 
 client.on('guildMemberAdd', async member => {
 
-  const channel =
+  const welcomeChannel =
     member.guild.channels.cache.find(
       c =>
         c.name.includes('welcome') &&
         c.type === ChannelType.GuildText
     );
 
-  if (!channel) return;
+  if (!welcomeChannel) return;
 
   const embed = new EmbedBuilder()
 
     .setColor('#ff0000')
 
-    .setTitle('🎉 Welcome to Krunker Mumbai')
+    .setTitle(
+      '🎉 Welcome to Krunker Mumbai'
+    )
 
     .setDescription(
 `Welcome ${member}
@@ -126,19 +142,14 @@ Read the rules and enjoy your stay.`
       })
     )
 
-    .setImage(
-      member.guild.bannerURL({
-        size: 1024
-      })
-    )
-
     .setFooter({
-      text: `Member #${member.guild.memberCount}`
+      text:
+        `Member #${member.guild.memberCount}`
     })
 
     .setTimestamp();
 
-  channel.send({
+  welcomeChannel.send({
     embeds: [embed]
   });
 
@@ -152,140 +163,6 @@ client.on('messageCreate', async message => {
 
   if (message.author.bot) return;
   if (!message.guild) return;
-
-  // ================= ANNOUNCE =================
-
-if (command === 'announce') {
-
-  if (!isOwnerOrAdmin(message.member)) {
-    return message.channel.send(
-      'No permission.'
-    );
-  }
-
-  const argsText = message.content
-    .slice(PREFIX.length + command.length)
-    .trim();
-
-  const matches = [
-    ...argsText.matchAll(/"([^"]+)"/g)
-  ].map(m => m[1]);
-
-  if (matches.length < 4) {
-    return message.channel.send(
-`Usage:
-?announce "message" "channel" "role/everyone" "team name"
-
-Example:
-?announce "Queue open now." "#general" "everyone" "Krunker Mumbai Moderation Team"`
-    );
-  }
-
-  const [
-    announcementText,
-    channelInput,
-    roleInput,
-    fromInput
-  ] = matches;
-
-  let targetChannel =
-    message.mentions.channels.first();
-
-  if (!targetChannel) {
-
-    targetChannel =
-      message.guild.channels.cache.find(
-        c =>
-          c.id === channelInput ||
-          c.name ===
-            channelInput
-              .replace('#', '')
-      );
-  }
-
-  if (!targetChannel) {
-    return message.channel.send(
-      'Channel not found.'
-    );
-  }
-
-  let pingText = '';
-
-  if (
-    roleInput.toLowerCase() ===
-    'everyone'
-  ) {
-
-    pingText = '@everyone';
-
-  } else if (
-    roleInput.toLowerCase() ===
-    'here'
-  ) {
-
-    pingText = '@here';
-
-  } else {
-
-    const role =
-      message.guild.roles.cache.find(
-        r =>
-          r.name.toLowerCase() ===
-          roleInput.toLowerCase()
-      );
-
-    if (!role) {
-      return message.channel.send(
-        'Role not found.'
-      );
-    }
-
-    pingText = `<@&${role.id}>`;
-  }
-
-  const embed = new EmbedBuilder()
-
-    .setColor('#ff0000')
-
-    .setAuthor({
-      name: fromInput,
-      iconURL:
-        message.guild.iconURL({
-          dynamic: true
-        })
-    })
-
-    .setDescription(
-`${announcementText}
-
-- ${fromInput}`
-    )
-
-    .setThumbnail(
-      message.guild.iconURL({
-        dynamic: true,
-        size: 1024
-      })
-    )
-
-    .setFooter({
-      text: 'Krunker Mumbai'
-    })
-
-    .setTimestamp();
-
-  await targetChannel.send({
-    content: `${pingText},`,
-    embeds: [embed],
-    allowedMentions: {
-      parse: ['roles', 'everyone']
-    }
-  });
-
-  return message.channel.send(
-    `✅ Announcement sent to ${targetChannel}`
-  );
-}
 
   // =========================
   // PREFIX CHECK
@@ -313,7 +190,9 @@ Example:
 
       .setColor('#ff0000')
 
-      .setTitle('📖 KM BOT COMMANDS')
+      .setTitle(
+        '📖 KM BOT COMMANDS'
+      )
 
       .setDescription(`
 ⚙️ Utility
@@ -323,6 +202,10 @@ Example:
 \`${PREFIX}userinfo\`
 \`${PREFIX}serverinfo\`
 \`${PREFIX}membercount\`
+
+📢 Announcements
+\`${PREFIX}announce\`
+\`${PREFIX}say\`
 
 🛡 Moderation
 \`${PREFIX}ban\`
@@ -337,16 +220,19 @@ Example:
 \`${PREFIX}rules\`
 \`${PREFIX}pickuprules\`
 \`${PREFIX}partnerships\`
-\`${PREFIX}say\`
+\`${PREFIX}prefix\`
       `)
 
       .setFooter({
         text: 'Krunker Mumbai'
-      });
+      })
+
+      .setTimestamp();
 
     return message.channel.send({
       embeds: [embed]
     });
+
   }
 
   // =========================
@@ -358,6 +244,160 @@ Example:
     return message.channel.send(
       `🏓 Pong: ${client.ws.ping}ms`
     );
+
+  }
+
+  // =========================
+  // ANNOUNCE
+  // =========================
+
+  if (command === 'announce') {
+
+    if (
+      !isOwnerOrAdmin(message.member)
+    ) {
+      return message.channel.send(
+        'No permission.'
+      );
+    }
+
+    const content =
+      message.content.slice(
+        PREFIX.length + command.length
+      ).trim();
+
+    const matches = [
+      ...content.matchAll(
+        /"([^"]+)"/g
+      )
+    ].map(m => m[1]);
+
+    if (matches.length < 4) {
+
+      return message.channel.send(
+`Usage:
+?announce "message" "channel" "role/everyone" "team name"
+
+Example:
+?announce "Queue open now." "#general" "everyone" "Krunker Mumbai Moderation Team"`
+      );
+
+    }
+
+    const [
+      announcementText,
+      channelInput,
+      roleInput,
+      fromInput
+    ] = matches;
+
+    let targetChannel =
+      message.mentions.channels.first();
+
+    if (!targetChannel) {
+
+      targetChannel =
+        message.guild.channels.cache.find(
+          c =>
+            c.id === channelInput ||
+            c.name ===
+              channelInput.replace('#', '')
+        );
+
+    }
+
+    if (!targetChannel) {
+
+      return message.channel.send(
+        'Channel not found.'
+      );
+
+    }
+
+    let pingText = '';
+
+    if (
+      roleInput.toLowerCase() ===
+      'everyone'
+    ) {
+
+      pingText = '@everyone';
+
+    } else if (
+      roleInput.toLowerCase() ===
+      'here'
+    ) {
+
+      pingText = '@here';
+
+    } else {
+
+      const role =
+        message.guild.roles.cache.find(
+          r =>
+            r.name.toLowerCase() ===
+            roleInput.toLowerCase()
+        );
+
+      if (!role) {
+
+        return message.channel.send(
+          'Role not found.'
+        );
+
+      }
+
+      pingText = `<@&${role.id}>`;
+
+    }
+
+    const embed = new EmbedBuilder()
+
+      .setColor('#ff0000')
+
+      .setAuthor({
+        name: fromInput,
+        iconURL:
+          message.guild.iconURL({
+            dynamic: true
+          })
+      })
+
+      .setThumbnail(
+        message.guild.iconURL({
+          dynamic: true,
+          size: 1024
+        })
+      )
+
+      .setDescription(
+`${announcementText}
+
+- ${fromInput}`
+      )
+
+      .setFooter({
+        text: 'Krunker Mumbai'
+      })
+
+      .setTimestamp();
+
+    await targetChannel.send({
+
+      content: `${pingText},`,
+
+      embeds: [embed],
+
+      allowedMentions: {
+        parse: ['roles', 'everyone']
+      }
+
+    });
+
+    return message.channel.send(
+      `✅ Announcement sent to ${targetChannel}`
+    );
+
   }
 
   // =========================
@@ -366,9 +406,9 @@ Example:
 
   if (command === 'say') {
 
-    if (!isOwnerOrAdmin(message.member)) {
-      return;
-    }
+    if (
+      !isOwnerOrAdmin(message.member)
+    ) return;
 
     const text = args.join(' ');
 
@@ -377,55 +417,7 @@ Example:
     await message.delete().catch(() => {});
 
     return message.channel.send(text);
-  }
 
-  // =========================
-  // PARTNERSHIPS
-  // =========================
-
-  if (command === 'partnerships') {
-
-    const banner =
-      new EmbedBuilder()
-
-        .setColor('#000000')
-
-        .setImage(
-'https://cdn.discordapp.com/attachments/1384997597084647559/1507304224608751616/ChatGPT_Image_May_22_2026_02_18_32_PM.png?ex=6a1169f3&is=6a101873&hm=b928e4475ef2a5f178a6db58081b99d209c27f6d3eb7457714264ee580b6aa71&'
-        );
-
-    const main =
-      new EmbedBuilder()
-
-        .setColor('#ff0000')
-
-        .setTitle('🤝 KM Partnerships')
-
-        .setDescription(`
-## Official Servers
-
-Competitive Krunker Apac [CKA](https://discord.gg/)
-Krunker Pro Circuit [KPC](https://discord.gg/)
-Tiranga [TRNG](https://discord.gg/)
-
-## Clans
-
-8t Clan [8t](https://discord.gg/)
-No Lifes/Nl [NL](https://discord.gg/)
-
-## Featured
-
-🔻 Water Client Support
-🔻 Mumbai Competitive Hub
-        `)
-
-        .setFooter({
-          text: 'Krunker Mumbai Partnerships'
-        });
-
-    return message.channel.send({
-      embeds: [banner, main]
-    });
   }
 
   // =========================
@@ -447,9 +439,16 @@ No Lifes/Nl [NL](https://discord.gg/)
       return message.channel.send(
         `Current Prefix: ${PREFIX}`
       );
+
     }
 
     if (args[0] === 'set') {
+
+      if (!args[1]) {
+        return message.channel.send(
+          'Provide a new prefix.'
+        );
+      }
 
       PREFIX = args[1];
 
@@ -458,6 +457,7 @@ No Lifes/Nl [NL](https://discord.gg/)
       return message.channel.send(
         `✅ Prefix changed to ${PREFIX}`
       );
+
     }
 
     if (args[0] === 'reset') {
@@ -469,7 +469,9 @@ No Lifes/Nl [NL](https://discord.gg/)
       return message.channel.send(
         '✅ Prefix reset.'
       );
+
     }
+
   }
 
   // =========================
@@ -485,24 +487,28 @@ No Lifes/Nl [NL](https://discord.gg/)
       message.mentions.users.first() ||
       message.author;
 
-    const avatar =
+    const avatarURL =
       user.displayAvatarURL({
         dynamic: true,
         size: 1024
       });
 
-    const embed =
-      new EmbedBuilder()
+    const embed = new EmbedBuilder()
 
-        .setColor('#ff0000')
+      .setColor('#ff0000')
 
-        .setAuthor({
-          name: `${user.tag}`
-        })
+      .setAuthor({
+        name:
+          `${user.username}'s Avatar`
+      })
 
-        .setImage(avatar)
+      .setImage(avatarURL)
 
-        .setTimestamp();
+      .setFooter({
+        text: `ID: ${user.id}`
+      })
+
+      .setTimestamp();
 
     const row =
       new ActionRowBuilder()
@@ -514,13 +520,14 @@ No Lifes/Nl [NL](https://discord.gg/)
             .setStyle(
               ButtonStyle.Link
             )
-            .setURL(avatar)
+            .setURL(avatarURL)
         );
 
     return message.channel.send({
       embeds: [embed],
       components: [row]
     });
+
   }
 
   // =========================
@@ -537,12 +544,13 @@ No Lifes/Nl [NL](https://discord.gg/)
         .setColor('#ff0000')
 
         .setDescription(
-`👥 Members: ${message.guild.memberCount}`
+`👥 Members: **${message.guild.memberCount}**`
         );
 
     return message.channel.send({
       embeds: [embed]
     });
+
   }
 
   // =========================
@@ -564,7 +572,8 @@ No Lifes/Nl [NL](https://discord.gg/)
         .setColor('#ff0000')
 
         .setAuthor({
-          name: member.user.tag,
+          name:
+            member.user.tag,
           iconURL:
             member.user.displayAvatarURL({
               dynamic: true
@@ -605,6 +614,7 @@ No Lifes/Nl [NL](https://discord.gg/)
     return message.channel.send({
       embeds: [embed]
     });
+
   }
 
   // =========================
@@ -660,7 +670,9 @@ No Lifes/Nl [NL](https://discord.gg/)
         .setFooter({
           text:
             `ID: ${guild.id}`
-        });
+        })
+
+        .setTimestamp();
 
     const row =
       new ActionRowBuilder()
@@ -683,12 +695,14 @@ No Lifes/Nl [NL](https://discord.gg/)
             .setStyle(
               ButtonStyle.Secondary
             )
+
         );
 
     return message.channel.send({
       embeds: [embed],
       components: [row]
     });
+
   }
 
   // =========================
@@ -699,14 +713,18 @@ No Lifes/Nl [NL](https://discord.gg/)
 
     if (
       !isOwnerOrAdmin(message.member)
-    ) {
-      return;
-    }
+    ) return;
 
     const amount =
       parseInt(args[0]);
 
-    if (!amount) return;
+    if (!amount) {
+
+      return message.channel.send(
+        'Provide amount.'
+      );
+
+    }
 
     await message.channel.bulkDelete(
       amount,
@@ -716,6 +734,7 @@ No Lifes/Nl [NL](https://discord.gg/)
     return message.channel.send(
       `🗑 Deleted ${amount} messages.`
     );
+
   }
 
   // =========================
@@ -747,6 +766,7 @@ No Lifes/Nl [NL](https://discord.gg/)
     return message.channel.send({
       embeds: [embed]
     });
+
   }
 
   // =========================
@@ -778,6 +798,7 @@ No Lifes/Nl [NL](https://discord.gg/)
     return message.channel.send({
       embeds: [embed]
     });
+
   }
 
   // =========================
@@ -793,10 +814,10 @@ No Lifes/Nl [NL](https://discord.gg/)
     const member =
       message.mentions.members.first();
 
+    if (!member) return;
+
     const duration =
       parseInt(args[1]) || 1;
-
-    if (!member) return;
 
     await member.timeout(
       duration * 60 * 1000
@@ -814,6 +835,7 @@ No Lifes/Nl [NL](https://discord.gg/)
     return message.channel.send({
       embeds: [embed]
     });
+
   }
 
   // =========================
@@ -838,6 +860,7 @@ No Lifes/Nl [NL](https://discord.gg/)
     return message.channel.send(
       `✅ ${member.user.tag} unmuted.`
     );
+
   }
 
   // =========================
@@ -860,6 +883,7 @@ No Lifes/Nl [NL](https://discord.gg/)
     return message.channel.send(
       '🔒 Channel locked.'
     );
+
   }
 
   // =========================
@@ -882,6 +906,7 @@ No Lifes/Nl [NL](https://discord.gg/)
     return message.channel.send(
       '🔓 Channel unlocked.'
     );
+
   }
 
   // =========================
@@ -890,74 +915,204 @@ No Lifes/Nl [NL](https://discord.gg/)
 
   if (command === 'rules') {
 
-    const embed =
-      new EmbedBuilder()
+    const embed = new EmbedBuilder()
 
-        .setColor('#ff0000')
+      .setColor('#ff0000')
 
-        .setTitle(
-          '📜 Server Rules'
-        )
+      .setTitle(
+        '📌 Krunker Mumbai OFFICIAL RULES'
+      )
 
-        .setDescription(`
-• Respect everyone
-• No racism or toxicity
-• No NSFW
-• No spam
-• Listen to staff
-• Use channels properly
-        `);
+      .setThumbnail(
+        message.guild.iconURL({
+          dynamic: true
+        })
+      )
+
+      .setDescription(`
+## Be Respectful
+Treat all members with respect. No racism, sexism, or hate speech.
+
+## No Spamming
+Avoid flooding messages, images, or pings.
+
+## Use Channels Properly
+Keep topics in the correct channels (e.g., use #scrim-schedule for scrim updates).
+
+## Voice Chat Etiquette
+No ear rape, loud music, or mic spam. Respect others in voice.
+
+## Follow Staff Instructions
+Admins and Mods are here to help. Ignoring them can lead to punishment.
+
+## Keep it Safe for All
+No NSFW content, extreme gore, or offensive media.
+
+## Have Fun!
+We're a family. Compete hard, chill harder.
+      `)
+
+      .setFooter({
+        text:
+          'Krunker Mumbai Rules'
+      })
+
+      .setTimestamp();
 
     return message.channel.send({
       embeds: [embed]
     });
+
   }
 
   // =========================
   // PICKUP RULES
   // =========================
 
-  if (
-    command === 'pickuprules'
-  ) {
+  if (command === 'pickuprules') {
 
-    const embed =
+    const embed = new EmbedBuilder()
+
+      .setColor('#ff0000')
+
+      .setTitle(
+        '🎯 Krunker Mumbai Pickup Rules'
+      )
+
+      .setThumbnail(
+        message.guild.iconURL({
+          dynamic: true
+        })
+      )
+
+      .setDescription(`
+## Pickup Rules
+• Play properly — no trolling, griefing, or throwing (includes excessive TDM play)
+• Do not leave matches midway
+• No reporting losses before the match ends
+• Only weapon skins are allowed (no other cosmetics)
+• Anonymous mode must be OFF (if verified)
+• Stay until the final results screen
+• If you need to leave, request a sub first
+• Don’t misuse bot commands during matches
+
+## Allowed Classes
+• Triggerman (AR)
+• Hunter (Sniper)
+• Run N Gun (SMG)
+• Detective (Revolver)
+• Marksman (Semi-Auto)
+• Commando (FAMAS)
+• Spray N Pray (LMG)
+• Vince (Shotgun)
+• Agent (Akimbo Uzi)
+• Trooper (Blaster)
+
+## Restricted (2v2 / 3v3)
+• Hunter (Sniper)
+• Spray N Pray (LMG)
+
+## Allowed Secondary Weapons
+• Pistol
+• Akimbo Pistols
+• Auto Pistol
+• Desert Eagle
+• Techy-9
+
+## Pickups Bot Commands
+• \`++\` → Join every queue at the same time
+• \`+2v2\` → Join a certain queue
+• \`--\` → Leave every queue at the same time
+• \`!pick @player\` → Captain picks players
+• \`!rl\` → Report match loss
+• \`!lb\` → View leaderboard
+• \`!rank\` → Check your rank
+
+## Penalties
+• Class swapping mid-game → 10min
+• Unfair kicking/banning → 30min
+• Dodging games → 20min
+• Leaving games → 20min
+• Wrong game reports → 30min
+
+> Punishments may vary depending on the situation.
+      `)
+
+      .setFooter({
+        text:
+          'Krunker Mumbai Pickups'
+      })
+
+      .setTimestamp();
+
+    return message.channel.send({
+      embeds: [embed]
+    });
+
+  }
+
+  // =========================
+  // PARTNERSHIPS
+  // =========================
+
+  if (command === 'partnerships') {
+
+    const banner =
+      new EmbedBuilder()
+
+        .setColor('#000000')
+
+        .setImage(
+'https://cdn.discordapp.com/attachments/1384997597084647559/1507304224608751616/ChatGPT_Image_May_22_2026_02_18_32_PM.png?ex=6a1169f3&is=6a101873&hm=b928e4475ef2a5f178a6db58081b99d209c27f6d3eb7457714264ee580b6aa71&'
+        );
+
+    const main =
       new EmbedBuilder()
 
         .setColor('#ff0000')
 
         .setTitle(
-          '🎯 Pickup Rules'
+          '🤝 KM Partnerships'
         )
 
         .setDescription(`
-• No trolling
-• No leaving matches
-• Stay till scoreboard
-• Respect teammates
+## Official Servers
+Competitive Krunker APAC • Soon
+Krunker Pro Circuit • Soon
 
-Restricted:
-Hunter
-Spray N Pray
-        `);
+## Clans
+8t • Soon
+NL • Soon
+
+## Featured
+Water Client Support • Soon
+Mumbai Competitive Hub • Soon
+        `)
+
+        .setFooter({
+          text:
+            'Krunker Mumbai Partnerships'
+        });
 
     return message.channel.send({
-      embeds: [embed]
+      embeds: [banner, main]
     });
+
   }
 
 });
 
 // =========================
-// BUTTONS
+// BUTTON INTERACTIONS
 // =========================
 
 client.on(
   'interactionCreate',
   async interaction => {
 
-    if (!interaction.isButton())
-      return;
+    if (
+      !interaction.isButton()
+    ) return;
 
     // =========================
     // ROLES BUTTON
@@ -974,8 +1129,9 @@ client.on(
             (a, b) =>
               b.position - a.position
           )
-          .map(role =>
-            role.toString()
+          .map(
+            role =>
+              role.toString()
           );
 
       const embed =
@@ -995,6 +1151,7 @@ client.on(
         embeds: [embed],
         ephemeral: true
       });
+
     }
 
     // =========================
@@ -1008,8 +1165,8 @@ client.on(
 
       const emojis =
         interaction.guild.emojis.cache
-          .map(e =>
-            e.toString()
+          .map(
+            e => e.toString()
           )
           .join(' ');
 
@@ -1018,6 +1175,7 @@ client.on(
           emojis || 'No emojis.',
         ephemeral: true
       });
+
     }
 
   }
