@@ -73,46 +73,50 @@ client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
   if (!message.guild) return;
 
-  // ================= AUTO PARTNERSHIP EMBED =================
+// ================= AUTO PARTNERSHIP EMBED =================
 
-  if (
-    message.channel.name ===
-    '🤝・𝙋𝙖𝙧𝙩𝙣𝙚𝙧𝙨𝙝𝙞𝙥𝙨'
-  ) {
+if (
+  message.channel.name ===
+  '🤝・𝙋𝙖𝙧𝙩𝙣𝙚𝙧𝙨𝙝𝙞𝙥𝙨'
+) {
 
-    const embed = new EmbedBuilder()
+  // EXAMPLE MESSAGE:
+  // Partnering with KPC https://discord.gg/abc123
 
-      .setColor('#ff0000')
+  const link =
+    message.content.match(
+      /(https?:\/\/[^\s]+)/g
+    )?.[0];
 
-      .setAuthor({
-        name: message.author.tag,
-        iconURL: message.author.displayAvatarURL({
-          dynamic: true
-        })
+  const text =
+    message.content.replace(link, '').trim();
+
+  const embed = new EmbedBuilder()
+
+    .setColor('#ff0000')
+
+    .setDescription(
+      `## 🤝 ${text}\n\n[Click here to join](${link})`
+    )
+
+    .setThumbnail(
+      message.guild.iconURL({
+        dynamic: true
       })
+    )
 
-      .setTitle('🤝 New Partnership')
+    .setFooter({
+      text: 'Krunker Mumbai Partnerships'
+    })
 
-      .setDescription(message.content)
+    .setTimestamp();
 
-      .setThumbnail(
-        message.guild.iconURL({
-          dynamic: true
-        })
-      )
+  await message.delete().catch(() => {});
 
-      .setFooter({
-        text: `Krunker Mumbai Partnerships`
-      })
-
-      .setTimestamp();
-
-    await message.delete().catch(() => {});
-
-    return message.channel.send({
-      embeds: [embed]
-    });
-  }
+  return message.channel.send({
+    embeds: [embed]
+  });
+}
 
   // ================= AUTO ANNOUNCEMENT EMBED =================
 
