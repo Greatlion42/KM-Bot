@@ -73,54 +73,52 @@ client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
   if (!message.guild) return;
 
-// ================= AUTO PARTNERSHIP EMBED =================
+// ================= PARTNERSHIP EMBED COMMAND =================
 
-if (
-  message.channel.name ===
-  '🤝・𝙋𝙖𝙧𝙩𝙣𝙚𝙧𝙨𝙝𝙞𝙥𝙨'
-) {
+if (command === 'partnerships') {
 
-  const link =
-    message.content.match(
-      /(https?:\/\/[^\s]+)/g
-    )?.[0];
-
-  if (!link) return;
-
-  const text =
-    message.content
-      .replace(link, '')
-      .trim();
-
-  const embed = new EmbedBuilder()
+  const embed1 = new EmbedBuilder()
 
     .setColor('#ff0000')
 
     .setImage(
       'https://cdn.discordapp.com/attachments/1384997597084647559/1507304224608751616/ChatGPT_Image_May_22_2026_02_18_32_PM.png?ex=6a1169f3&is=6a101873&hm=b928e4475ef2a5f178a6db58081b99d209c27f6d3eb7457714264ee580b6aa71&'
-    )
+    );
+
+  const embed2 = new EmbedBuilder()
+
+    .setColor('#111111')
 
     .setDescription(
-      `## 🤝 [${text}](${link})`
-    )
+`# 🤝 __Partnerships__
 
-    .setThumbnail(
-      message.guild.iconURL({
-        dynamic: true,
-        size: 1024
-      })
-    )
+## Official Servers:
+Official Krunker Discord • Soon
+North America Competitive Krunker • Soon
+Competitive Krunker APAC • [CKA](https://discord.gg/)
+Krunker Pro Circuit • [KPC](https://discord.gg/)
 
-    .setFooter({
-      text: 'Krunker Mumbai Partnerships'
-    })
+## Clans:
+8t • [8t](https://discord.gg/)
 
-    .setTimestamp();
+## Featured Servers:
+Water CLient support • Soon`
+    );
 
-  await message.delete().catch(() => {});
+  const embed3 = new EmbedBuilder()
+
+    .setColor('#111111')
+
+    .setDescription(
+`📩 | For partnership enquiries, please contact <@YOUR_ID>`
+    );
 
   return message.channel.send({
-    embeds: [embed]
+    embeds: [
+      embed1,
+      embed2,
+      embed3
+    ]
   });
 }
 
