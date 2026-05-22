@@ -68,6 +68,59 @@ client.on('messageCreate', async (message) => {
 
   if (message.author.bot) return;
   if (!message.guild) return;
+
+  // AUTO PARTNERS CHANNEL EMBED
+  if (
+    message.channel.name === '📢・𝙋𝙖𝙧𝙩𝙣𝙚𝙧𝙨𝙝𝙞𝙥𝙨'
+  ) {
+
+    if (message.embeds.length > 0) return;
+
+    const embed = new EmbedBuilder()
+      .setColor('#ff0000')
+      .setTitle('🤝 Partnership')
+      .setDescription(message.content)
+      .setFooter({
+        text: `Posted by ${message.author.username}`,
+        iconURL: message.author.displayAvatarURL({
+          dynamic: true
+        })
+      })
+      .setTimestamp();
+
+    await message.delete().catch(() => {});
+
+    return message.channel.send({
+      embeds: [embed]
+    });
+  }
+
+  // AUTO ANNOUNCEMENT EMBED
+  if (
+    message.channel.name === '📢・𝙎𝙚𝙧𝙫𝙚𝙧_𝘼𝙣𝙣𝙤𝙪𝙣𝙘𝙚𝙢𝙚𝙣𝙩𝙨'
+  ) {
+
+    if (message.embeds.length > 0) return;
+
+    const embed = new EmbedBuilder()
+      .setColor('#ff0000')
+      .setTitle('📢 Server Announcement')
+      .setDescription(message.content)
+      .setFooter({
+        text: `Announcement by ${message.author.username}`,
+        iconURL: message.author.displayAvatarURL({
+          dynamic: true
+        })
+      })
+      .setTimestamp();
+
+    await message.delete().catch(() => {});
+
+    return message.channel.send({
+      embeds: [embed]
+    });
+  }
+
   if (!message.content.startsWith(PREFIX)) return;
 
   const args = message.content
@@ -133,11 +186,10 @@ client.on('messageCreate', async (message) => {
 
     const embed = new EmbedBuilder()
       .setColor('#ff0000')
-      .setAuthor({
-        name: `${user.username}'s Avatar`,
-        iconURL: avatarURL
-      })
       .setImage(avatarURL)
+      .setFooter({
+        text: `${user.username}'s Avatar`
+      })
       .setTimestamp();
 
     const row = new ActionRowBuilder()
@@ -269,9 +321,25 @@ client.on('messageCreate', async (message) => {
 
     const embed = new EmbedBuilder()
       .setColor('#ff0000')
+      .setAuthor({
+        name: 'KM Moderation',
+        iconURL:
+          client.user.displayAvatarURL()
+      })
+      .setThumbnail(
+        member.user.displayAvatarURL({
+          dynamic: true
+        })
+      )
       .setDescription(
         `🔨 ${member.user.tag} has been banned.`
-      );
+      )
+      .addFields({
+        name: 'Moderator',
+        value: `${message.author.tag}`,
+        inline: true
+      })
+      .setTimestamp();
 
     return message.channel.send({
       embeds: [embed],
@@ -294,9 +362,15 @@ client.on('messageCreate', async (message) => {
 
     await message.guild.members.unban(args[0]);
 
-    return message.channel.send(
-      '✅ User unbanned.'
-    );
+    const embed = new EmbedBuilder()
+      .setColor('#00ff99')
+      .setDescription(
+        `✅ User unbanned successfully.`
+      );
+
+    return message.channel.send({
+      embeds: [embed]
+    });
   }
 
   // KICK
@@ -317,14 +391,30 @@ client.on('messageCreate', async (message) => {
 
     await member.kick();
 
+    const embed = new EmbedBuilder()
+      .setColor('#ff0000')
+      .setAuthor({
+        name: 'KM Moderation',
+        iconURL:
+          client.user.displayAvatarURL()
+      })
+      .setThumbnail(
+        member.user.displayAvatarURL({
+          dynamic: true
+        })
+      )
+      .setDescription(
+        `👢 ${member.user.tag} has been kicked.`
+      )
+      .addFields({
+        name: 'Moderator',
+        value: `${message.author.tag}`,
+        inline: true
+      })
+      .setTimestamp();
+
     return message.channel.send({
-      embeds: [
-        new EmbedBuilder()
-          .setColor('#ff0000')
-          .setDescription(
-            `👢 ${member.user.tag} has been kicked.`
-          )
-      ],
+      embeds: [embed],
       allowedMentions: { users: [] }
     });
   }
@@ -368,7 +458,7 @@ client.on('messageCreate', async (message) => {
         })
       )
       .setDescription(
-        `✅ ${member.user.tag} has been timed out for ${duration} minute(s).`
+        `🔇 ${member.user.tag} has been timed out for ${duration} minute(s).`
       )
       .addFields(
         {
@@ -411,14 +501,30 @@ client.on('messageCreate', async (message) => {
 
     await member.timeout(null);
 
+    const embed = new EmbedBuilder()
+      .setColor('#00ff99')
+      .setAuthor({
+        name: 'KM Moderation',
+        iconURL:
+          client.user.displayAvatarURL()
+      })
+      .setThumbnail(
+        member.user.displayAvatarURL({
+          dynamic: true
+        })
+      )
+      .setDescription(
+        `🔊 ${member.user.tag} has been unmuted.`
+      )
+      .addFields({
+        name: 'Moderator',
+        value: `${message.author.tag}`,
+        inline: true
+      })
+      .setTimestamp();
+
     return message.channel.send({
-      embeds: [
-        new EmbedBuilder()
-          .setColor('#00ff99')
-          .setDescription(
-            `✅ ${member.user.tag} has been unmuted.`
-          )
-      ],
+      embeds: [embed],
       allowedMentions: { users: [] }
     });
   }
@@ -464,29 +570,47 @@ Compete hard, chill harder.
       .setColor('#ff0000')
       .setTitle('🎯 Pickup Rules')
       .setDescription(`
-Play properly — no trolling, griefing, or throwing.
-Do not leave matches midway.
-No reporting losses before the match ends.
-Only weapon skins are allowed.
-Stay until the final results screen.
+Play properly — no trolling, griefing, or throwing (includes excessive TDM play)
+
+Do not leave matches midway
+
+No reporting losses before the match ends
+
+Only weapon skins are allowed
+
+Anonymous mode must be OFF (if verified)
+
+Stay until the final results screen
+
+If you need to leave, request a sub first
+
+Don’t misuse bot commands during matches
 
 **Allowed Classes**
-Triggerman
-Hunter
-Run N Gun
-Detective
-Marksman
-Commando
-Spray N Pray
-Vince
-Agent
-Trooper
+Triggerman (AR)
+Hunter (Sniper)
+Run N Gun (SMG)
+Detective (Revolver)
+Marksman (Semi-Auto)
+Commando (FAMAS)
+Spray N Pray (LMG)
+Vince (Shotgun)
+Agent (Akimbo Uzi)
+Trooper (Blaster)
 
-**Restricted**
-Hunter
-Spray N Pray
+**Restricted (2v2 / 3v3)**
+Hunter (Sniper)
+Spray N Pray (LMG)
+
+**Allowed Secondary Weapons**
+Pistol
+Akimbo Pistols
+Auto Pistol
+Desert Eagle
+Techy-9
 
 **Penalties**
+Class swapping → 10min
 Dodging → 20min
 Leaving → 20min
 Wrong reports → 30min
@@ -539,11 +663,32 @@ Wrong reports → 30min
     if (member.permissions.has('ManageMessages'))
       permissions.push('Manage Messages');
 
+    if (member.permissions.has('ManageWebhooks'))
+      permissions.push('Manage Webhooks');
+
+    if (member.permissions.has('ManageNicknames'))
+      permissions.push('Manage Nicknames');
+
+    if (member.permissions.has('ManageGuildExpressions'))
+      permissions.push('Manage Emojis and Stickers');
+
     if (member.permissions.has('KickMembers'))
       permissions.push('Kick Members');
 
     if (member.permissions.has('BanMembers'))
       permissions.push('Ban Members');
+
+    if (member.permissions.has('MentionEveryone'))
+      permissions.push('Mention Everyone');
+
+    if (member.permissions.has('ModerateMembers'))
+      permissions.push('Timeout Members');
+
+    const acknowledgements = [];
+
+    if (member.id === message.guild.ownerId) {
+      acknowledgements.push('Server Owner');
+    }
 
     const embed = new EmbedBuilder()
       .setColor('#ff0000')
@@ -580,6 +725,13 @@ Wrong reports → 30min
             permissions.length > 0
               ? permissions.join(', ')
               : 'None'
+        },
+        {
+          name: 'Acknowledgements',
+          value:
+            acknowledgements.length > 0
+              ? acknowledgements.join(', ')
+              : 'None'
         }
       )
       .setImage(
@@ -615,6 +767,17 @@ Wrong reports → 30min
       c => c.type === ChannelType.GuildCategory
     ).size;
 
+    const bots = guild.members.cache.filter(
+      m => m.user.bot
+    ).size;
+
+    const humans =
+      guild.memberCount - bots;
+
+    const onlineMembers = guild.members.cache.filter(
+      m => m.presence?.status !== 'offline'
+    ).size;
+
     const embed = new EmbedBuilder()
       .setColor('#ff0000')
       .setAuthor({
@@ -634,45 +797,56 @@ Wrong reports → 30min
           inline: true
         },
         {
+          name: '🆔 Server ID',
+          value: guild.id,
+          inline: true
+        },
+        {
+          name: '📅 Created',
+          value: `<t:${parseInt(guild.createdTimestamp / 1000)}:R>`,
+          inline: true
+        },
+        {
           name: '👥 Members',
-          value: `${guild.memberCount}`,
+          value:
+            `Total: ${guild.memberCount}\n` +
+            `Humans: ${humans}\n` +
+            `Bots: ${bots}\n` +
+            `Online: ${onlineMembers}`,
           inline: true
         },
         {
-          name: '🎭 Roles',
-          value: `${guild.roles.cache.size}`,
+          name: '📚 Channels',
+          value:
+            `Categories: ${categories}\n` +
+            `Text: ${textChannels}\n` +
+            `Voice: ${voiceChannels}`,
           inline: true
         },
         {
-          name: '📂 Categories',
-          value: `${categories}`,
-          inline: true
-        },
-        {
-          name: '💬 Text Channels',
-          value: `${textChannels}`,
-          inline: true
-        },
-        {
-          name: '🔊 Voice Channels',
-          value: `${voiceChannels}`,
+          name: '😀 Emojis',
+          value: `${guild.emojis.cache.size}`,
           inline: true
         }
       )
       .setFooter({
-        text: `ID: ${guild.id}`
-      });
+        text: `Requested by ${message.author.username}`,
+        iconURL: message.author.displayAvatarURL({
+          dynamic: true
+        })
+      })
+      .setTimestamp();
 
     const row = new ActionRowBuilder()
       .addComponents(
         new ButtonBuilder()
           .setCustomId('roles_btn')
-          .setLabel('Roles')
+          .setLabel(`Roles (${guild.roles.cache.size})`)
           .setStyle(ButtonStyle.Danger),
 
         new ButtonBuilder()
           .setCustomId('emojis_btn')
-          .setLabel('Emojis')
+          .setLabel(`Emojis (${guild.emojis.cache.size})`)
           .setStyle(ButtonStyle.Secondary)
       );
 
