@@ -110,7 +110,7 @@ Water CLient support • Soon`
     .setColor('#111111')
 
     .setDescription(
-`📩 | For partnership enquiries, please contact <@YOUR_ID>`
+`📩 | For partnership enquiries, please contact <@721479121347280997>`
     );
 
   return message.channel.send({
