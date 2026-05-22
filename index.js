@@ -1051,56 +1051,7 @@ We're a family. Compete hard, chill harder.
 
   }
 
-  // =========================
-  // PARTNERSHIPS
-  // =========================
 
-  if (command === 'partnerships') {
-
-    const banner =
-      new EmbedBuilder()
-
-        .setColor('#000000')
-
-        .setImage(
-'https://cdn.discordapp.com/attachments/1384997597084647559/1507304224608751616/ChatGPT_Image_May_22_2026_02_18_32_PM.png?ex=6a1169f3&is=6a101873&hm=b928e4475ef2a5f178a6db58081b99d209c27f6d3eb7457714264ee580b6aa71&'
-        );
-
-    const main =
-      new EmbedBuilder()
-
-        .setColor('#ff0000')
-
-        .setTitle(
-          '🤝 KM Partnerships'
-        )
-
-        .setDescription(`
-## Official Servers
-Competitive Krunker APAC • Soon
-Krunker Pro Circuit • Soon
-
-## Clans
-8t • Soon
-NL • Soon
-
-## Featured
-Water Client Support • Soon
-Mumbai Competitive Hub • Soon
-        `)
-
-        .setFooter({
-          text:
-            'Krunker Mumbai Partnerships'
-        });
-
-    return message.channel.send({
-      embeds: [banner, main]
-    });
-
-  }
-
-});
 
 // =========================
 // BUTTON INTERACTIONS
