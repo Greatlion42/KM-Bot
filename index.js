@@ -425,50 +425,26 @@ Example:
     // PARTNERSHIPS
     // =========================
 
-    if (
-      command === 'partnerships'
-    ) {
+    if (command === 'partnerships') {
 
-      const banner =
-        new EmbedBuilder()
+    const embed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setTitle('🤝 KM Partnerships')
+        .setDescription(`
+### Clans
 
-          .setColor('#000000')
+🔻 No Lifes
+https://discord.gg/dKEUveB7ha
+        `)
+        .setFooter({
+            text: 'Krunker Mumbai Partnerships'
+        })
+        .setTimestamp();
 
-          .setImage(
-'https://cdn.discordapp.com/attachments/1384997597084647559/1507304224608751616/ChatGPT_Image_May_22_2026_02_18_32_PM.png?ex=6a1169f3&is=6a101873&hm=b928e4475ef2a5f178a6db58081b99d209c27f6d3eb7457714264ee580b6aa71&'
-          );
-
-      const main =
-        new EmbedBuilder()
-
-          .setColor('#ff0000')
-
-          .setTitle(
-            ':handshake: KM Partnerships'
-          )
-
-          .setDescription(`
-
-## Clans
-
-:small_red_triangle_down: [No Lifes](https://discord.gg/dKEUveB7ha/)
-
-          `)
-
-          .setFooter({
-            text:
-              'Krunker Mumbai Partnerships'
-          })
-
-          .setTimestamp();
-
-      return message.channel.send({
-        embeds: [
-          banner,
-          main
-        ]
-      });
-    }
+    return message.channel.send({
+        embeds: [embed]
+    });
+}
     // =========================
     // PREFIX
     // =========================
