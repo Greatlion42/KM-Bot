@@ -433,9 +433,10 @@ Example:
         .setDescription(`
 ### Clans
 
-🔻 No Lifes
+🔻 **No Lifes**
 https://discord.gg/dKEUveB7ha
         `)
+        .setImage('https://media.discordapp.net/attachments/1384997597084647559/1507304224608751616/ChatGPT_Image_May_22_2026_02_18_32_PM.png')
         .setFooter({
             text: 'Krunker Mumbai Partnerships'
         })
