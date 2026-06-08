@@ -421,7 +421,54 @@ Example:
         `✅ Announcement sent to ${targetChannel}`
       );
     }
+// =========================
+    // PARTNERSHIPS
+    // =========================
 
+    if (
+      command === 'partnerships'
+    ) {
+
+      const banner =
+        new EmbedBuilder()
+
+          .setColor('#000000')
+
+          .setImage(
+'https://cdn.discordapp.com/attachments/1384997597084647559/1507304224608751616/ChatGPT_Image_May_22_2026_02_18_32_PM.png?ex=6a1169f3&is=6a101873&hm=b928e4475ef2a5f178a6db58081b99d209c27f6d3eb7457714264ee580b6aa71&'
+          );
+
+      const main =
+        new EmbedBuilder()
+
+          .setColor('#ff0000')
+
+          .setTitle(
+            ':handshake: KM Partnerships'
+          )
+
+          .setDescription(`
+
+## Clans
+
+:small_red_triangle_down: [No Lifes](https://discord.gg/dKEUveB7ha/)
+
+          `)
+
+          .setFooter({
+            text:
+              'Krunker Mumbai Partnerships'
+          })
+
+          .setTimestamp();
+
+      return message.channel.send({
+        embeds: [
+          banner,
+          main
+        ]
+      });
+    }
     // =========================
     // PREFIX
     // =========================
