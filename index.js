@@ -435,6 +435,7 @@ Example:
 
 🔻 **No Lifes**
 [nL Clan](https://discord.gg/dKEUveB7ha)
+🔻 **Rampage**
 [RMPG Clan](https://discord.gg/SrDhfQbeQU)
         `)
         .setImage('https://media.discordapp.net/attachments/1384997597084647559/1507304224608751616/ChatGPT_Image_May_22_2026_02_18_32_PM.png')
