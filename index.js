@@ -248,10 +248,10 @@ client.on(
     if (command === 'say') {
 
       if (
-        !isOwnerOrAdmin(
-          message.member
-        )
-      ) return;
+    !message.member.permissions.has(
+        PermissionsBitField.Flags.ManageMessages
+    )
+) return;
 
       const text =
         args.join(' ');
@@ -455,10 +455,10 @@ Example:
     if (command === 'prefix') {
 
       if (
-        !isOwnerOrAdmin(
-          message.member
-        )
-      ) {
+    !message.member.permissions.has(
+        PermissionsBitField.Flags.Administrator
+    )
+) {
         return message.channel.send(
           'No permission.'
         );
@@ -509,60 +509,57 @@ Example:
     // AVATAR
     // =========================
 
-    if (
-      command === 'avatar' ||
-      command === 'av'
-    ) {
+if (command === 'avatar' || command === 'av') {
 
-      const user =
-        message.mentions.users.first() ||
-        message.author;
+    let user = null;
 
-      const avatar =
-        user.displayAvatarURL({
-          dynamic: true,
-          size: 1024
-        });
-
-      const embed =
-        new EmbedBuilder()
-
-          .setColor('#ff0000')
-
-          .setAuthor({
-            name: user.tag
-          })
-
-          .setImage(avatar)
-
-          .setFooter({
-            text:
-              `ID: ${user.id}`
-          })
-
-          .setTimestamp();
-
-      const row =
-        new ActionRowBuilder()
-          .addComponents(
-
-            new ButtonBuilder()
-              .setLabel(
-                'Open Avatar'
-              )
-              .setStyle(
-                ButtonStyle.Link
-              )
-              .setURL(avatar)
-
-          );
-
-      return message.channel.send({
-        embeds: [embed],
-        components: [row]
-      });
+    // Mention
+    if (message.mentions.users.size > 0) {
+        user = message.mentions.users.first();
     }
 
+    // User ID
+    else if (args[0]) {
+        try {
+            user = await client.users.fetch(args[0]);
+        } catch {
+            user = message.author;
+        }
+    }
+
+    // Self
+    else {
+        user = message.author;
+    }
+
+    const avatar = user.displayAvatarURL({
+        dynamic: true,
+        size: 4096
+    });
+
+    const embed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setAuthor({
+            name: `${user.tag}'s Avatar`
+        })
+        .setImage(avatar)
+        .setFooter({
+            text: `ID: ${user.id}`
+        })
+        .setTimestamp();
+
+    const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+            .setLabel('Open Avatar')
+            .setStyle(ButtonStyle.Link)
+            .setURL(avatar)
+    );
+
+    return message.channel.send({
+        embeds: [embed],
+        components: [row]
+    });
+}
     // =========================
     // MEMBERCOUNT
     // =========================
@@ -754,10 +751,14 @@ Example:
     if (command === 'purge') {
 
       if (
-        !isOwnerOrAdmin(
-          message.member
-        )
-      ) return;
+    !message.member.permissions.has(
+        PermissionsBitField.Flags.ManageMessages
+    )
+) {
+    return message.channel.send(
+        '❌ You need Manage Messages permission.'
+    );
+}
 
       const amount =
         parseInt(args[0]);
@@ -786,13 +787,49 @@ Example:
     if (command === 'ban') {
 
       if (
-        !isOwnerOrAdmin(
-          message.member
-        )
-      ) return;
+    !message.member.permissions.has(
+        PermissionsBitField.Flags.BanMembers
+    )
+) {
+    return message.channel.send(
+        'You need Ban Members permission.'
+    );
+}
+      return;
 
       const member =
         message.mentions.members.first();
+
+      if (member.id === message.author.id) {
+    return message.channel.send(
+        '❌ You cannot ban yourself.'
+    );
+}
+
+if (
+    member.permissions.has(
+        PermissionsBitField.Flags.Administrator
+    )
+) {
+    return message.channel.send(
+        '❌ You cannot ban another administrator.'
+    );
+}
+
+if (
+    member.roles.highest.position >=
+    message.member.roles.highest.position
+) {
+    return message.channel.send(
+        '❌ That user has an equal or higher role.'
+    );
+}
+
+if (!member.bannable) {
+    return message.channel.send(
+        '❌ I cannot ban that user.'
+    );
+}
 
       if (!member) {
 
@@ -821,40 +858,74 @@ Example:
     // KICK
     // =========================
 
-    if (command === 'kick') {
+if (command === 'kick') {
 
-      if (
-        !isOwnerOrAdmin(
-          message.member
+    if (
+        !message.member.permissions.has(
+            PermissionsBitField.Flags.KickMembers
         )
-      ) return;
-
-      const member =
-        message.mentions.members.first();
-
-      if (!member) {
-
+    ) {
         return message.channel.send(
-          'Mention a user.'
+            '❌ You need Kick Members permission.'
         );
-      }
-
-      await member.kick();
-
-      const embed =
-        new EmbedBuilder()
-
-          .setColor('#ff0000')
-
-          .setDescription(
-`👢 ${member.user.tag} has been kicked.`
-          );
-
-      return message.channel.send({
-        embeds: [embed]
-      });
     }
 
+    const member =
+        message.mentions.members.first();
+
+    if (!member) {
+        return message.channel.send(
+            'Mention a user.'
+        );
+    }
+
+    // Cannot kick yourself
+    if (member.id === message.author.id) {
+        return message.channel.send(
+            '❌ You cannot kick yourself.'
+        );
+    }
+
+    // Cannot kick administrators
+    if (
+        member.permissions.has(
+            PermissionsBitField.Flags.Administrator
+        )
+    ) {
+        return message.channel.send(
+            '❌ You cannot kick an administrator.'
+        );
+    }
+
+    // Cannot kick same/higher role
+    if (
+        member.roles.highest.position >=
+        message.member.roles.highest.position
+    ) {
+        return message.channel.send(
+            '❌ That user has an equal or higher role.'
+        );
+    }
+
+    // Bot hierarchy check
+    if (!member.kickable) {
+        return message.channel.send(
+            '❌ I cannot kick that user.'
+        );
+    }
+
+    await member.kick();
+
+    const embed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setDescription(
+            `👢 ${member.user.tag} has been kicked.`
+        );
+
+    return message.channel.send({
+        embeds: [embed]
+    });
+}
     // =========================
     // TIMEOUT
     // =========================
@@ -862,10 +933,10 @@ Example:
     if (command === 'timeout') {
 
       if (
-        !isModerator(
-          message.member
-        )
-      ) return;
+    !message.member.permissions.has(
+        PermissionsBitField.Flags.ModerateMembers
+    )
+) return;
 
       const member =
         message.mentions.members.first();
@@ -907,10 +978,10 @@ Example:
     ) {
 
       if (
-        !isModerator(
-          message.member
-        )
-      ) return;
+    !message.member.permissions.has(
+        PermissionsBitField.Flags.ModerateMembers
+    )
+) return;
 
       const member =
         message.mentions.members.first();
@@ -936,10 +1007,10 @@ Example:
     if (command === 'lock') {
 
       if (
-        !isModerator(
-          message.member
-        )
-      ) return;
+    !message.member.permissions.has(
+        PermissionsBitField.Flags.ManageChannels
+    )
+) return;
 
       await message.channel.permissionOverwrites.edit(
         message.guild.roles.everyone,
@@ -959,11 +1030,11 @@ Example:
 
     if (command === 'unlock') {
 
-      if (
-        !isModerator(
-          message.member
-        )
-      ) return;
+     if (
+    !message.member.permissions.has(
+        PermissionsBitField.Flags.ManageChannels
+    )
+) return;
 
       await message.channel.permissionOverwrites.edit(
         message.guild.roles.everyone,
@@ -977,6 +1048,80 @@ Example:
       );
     }
 
+    // =========================
+    // ROLE
+    // =========================
+
+if (command === 'role') {
+
+    if (
+        !message.member.permissions.has(
+            PermissionsBitField.Flags.ManageRoles
+        )
+    ) {
+        return message.channel.send(
+            '❌ You need Manage Roles permission.'
+        );
+    }
+
+    const member =
+        message.mentions.members.first();
+
+    if (!member) {
+        return message.channel.send(
+            `Usage: ${PREFIX}role @user Role Name`
+        );
+    }
+
+    const roleName =
+        args.slice(1).join(' ');
+
+    if (!roleName) {
+        return message.channel.send(
+            'Provide a role name.'
+        );
+    }
+
+    const role =
+        message.guild.roles.cache.find(
+            r =>
+                r.name.toLowerCase() ===
+                roleName.toLowerCase()
+        );
+
+    if (!role) {
+        return message.channel.send(
+            'Role not found.'
+        );
+    }
+
+    if (
+        role.position >=
+        message.member.roles.highest.position
+    ) {
+        return message.channel.send(
+            '❌ You cannot manage that role.'
+        );
+    }
+
+    if (
+        member.roles.cache.has(role.id)
+    ) {
+
+        await member.roles.remove(role);
+
+        return message.channel.send(
+            `➖ Removed ${role} from ${member}`
+        );
+    }
+
+    await member.roles.add(role);
+
+    return message.channel.send(
+        `➕ Added ${role} to ${member}`
+    );
+}
+    
     // =========================
     // RULES
     // =========================
