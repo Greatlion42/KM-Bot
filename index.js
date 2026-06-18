@@ -13,6 +13,7 @@ const {
   ChannelType
 } = require('discord.js');
 
+const warnings = new Map();
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -587,163 +588,213 @@ if (command === 'avatar' || command === 'av') {
     // =========================
 
     if (
-      command === 'userinfo' ||
-      command === 'ui'
-    ) {
+    command === 'userinfo' ||
+    command === 'ui'
+) {
 
-      const member =
+    const member =
         message.mentions.members.first() ||
         message.member;
 
-      const embed =
-        new EmbedBuilder()
+    const roles =
+        member.roles.cache
+            .filter(r => r.id !== message.guild.id)
+            .map(r => r.toString())
+            .join(', ') || 'None';
 
-          .setColor('#ff0000')
-
-          .setAuthor({
-            name:
-              member.user.tag,
-            iconURL:
-              member.user.displayAvatarURL({
+    const embed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setAuthor({
+            name: member.user.tag,
+            iconURL: member.user.displayAvatarURL({
                 dynamic: true
-              })
-          })
-
-          .setThumbnail(
-            member.user.displayAvatarURL({
-              dynamic: true
             })
-          )
-
-          .addFields(
+        })
+        .setThumbnail(
+            member.user.displayAvatarURL({
+                dynamic: true,
+                size: 4096
+            })
+        )
+        .addFields(
             {
-              name:
-                'Joined Server',
-              value:
-`<t:${Math.floor(member.joinedTimestamp / 1000)}:F>`
+                name: '👤 Username',
+                value: member.user.username,
+                inline: true
             },
             {
-              name:
-                'Created Account',
-              value:
-`<t:${Math.floor(member.user.createdTimestamp / 1000)}:F>`
+                name: '🏷 Display Name',
+                value: member.displayName,
+                inline: true
             },
             {
-              name:
-                'Highest Role',
-              value:
-                `${member.roles.highest}`
+                name: '🆔 User ID',
+                value: member.user.id,
+                inline: true
+            },
+            {
+                name: '📅 Account Created',
+                value: `<t:${Math.floor(member.user.createdTimestamp / 1000)}:F>`,
+                inline: false
+            },
+            {
+                name: '📥 Joined Server',
+                value: `<t:${Math.floor(member.joinedTimestamp / 1000)}:F>`,
+                inline: false
+            },
+            {
+                name: '🎭 Highest Role',
+                value: `${member.roles.highest}`,
+                inline: true
+            },
+            {
+                name: '📊 Role Count',
+                value: `${member.roles.cache.size - 1}`,
+                inline: true
+            },
+            {
+                name: '🚀 Server Booster',
+                value: member.premiumSince ? 'Yes' : 'No',
+                inline: true
+            },
+            {
+                name: '🤖 Bot Account',
+                value: member.user.bot ? 'Yes' : 'No',
+                inline: true
+            },
+            {
+                name: '⏳ Timed Out',
+                value: member.isCommunicationDisabled() ? 'Yes' : 'No',
+                inline: true
+            },
+            {
+                name: '🎭 Roles',
+                value: roles.length > 1024 ? 'Too many roles.' : roles,
+                inline: false
             }
-          )
+        )
+        .setFooter({
+            text: `ID: ${member.user.id}`
+        })
+        .setTimestamp();
 
-          .setFooter({
-            text:
-              `ID: ${member.user.id}`
-          })
-
-          .setTimestamp();
-
-      return message.channel.send({
+    return message.channel.send({
         embeds: [embed]
-      });
-    }
+    });
+}
 
     // =========================
     // SERVERINFO
     // =========================
 
-    if (
-      command === 'serverinfo'
-    ) {
+    if (command === 'serverinfo') {
 
-      const guild =
-        message.guild;
+    const guild = message.guild;
 
-      const embed =
-        new EmbedBuilder()
+    const humans =
+        guild.members.cache.filter(
+            m => !m.user.bot
+        ).size;
 
-          .setColor('#ff0000')
+    const bots =
+        guild.members.cache.filter(
+            m => m.user.bot
+        ).size;
 
-          .setAuthor({
-            name:
-              guild.name,
-            iconURL:
-              guild.iconURL({
+    const textChannels =
+        guild.channels.cache.filter(
+            c => c.type === ChannelType.GuildText
+        ).size;
+
+    const voiceChannels =
+        guild.channels.cache.filter(
+            c => c.type === ChannelType.GuildVoice
+        ).size;
+
+    const embed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setAuthor({
+            name: guild.name,
+            iconURL: guild.iconURL({
                 dynamic: true
-              })
-          })
-
-          .setThumbnail(
-            guild.iconURL({
-              dynamic: true
             })
-          )
-
-          .addFields(
+        })
+        .setThumbnail(
+            guild.iconURL({
+                dynamic: true
+            })
+        )
+        .addFields(
             {
-              name:
-                '👑 Owner',
-              value:
-                `<@${guild.ownerId}>`,
-              inline: true
+                name: '👑 Owner',
+                value: `<@${guild.ownerId}>`,
+                inline: true
             },
             {
-              name:
-                '👥 Members',
-              value:
-                `${guild.memberCount}`,
-              inline: true
+                name: '🆔 Server ID',
+                value: guild.id,
+                inline: true
             },
             {
-              name:
-                '🎭 Roles',
-              value:
-                `${guild.roles.cache.size}`,
-              inline: true
+                name: '📅 Created',
+                value: `<t:${Math.floor(guild.createdTimestamp / 1000)}:F>`,
+                inline: false
+            },
+            {
+                name: '👥 Members',
+                value: `${guild.memberCount}`,
+                inline: true
+            },
+            {
+                name: '🙍 Humans',
+                value: `${humans}`,
+                inline: true
+            },
+            {
+                name: '🤖 Bots',
+                value: `${bots}`,
+                inline: true
+            },
+            {
+                name: '🎭 Roles',
+                value: `${guild.roles.cache.size}`,
+                inline: true
+            },
+            {
+                name: '💬 Text Channels',
+                value: `${textChannels}`,
+                inline: true
+            },
+            {
+                name: '🔊 Voice Channels',
+                value: `${voiceChannels}`,
+                inline: true
+            },
+            {
+                name: '🚀 Boost Level',
+                value: `${guild.premiumTier}`,
+                inline: true
+            },
+            {
+                name: '✨ Boosts',
+                value: `${guild.premiumSubscriptionCount || 0}`,
+                inline: true
+            },
+            {
+                name: '😀 Emojis',
+                value: `${guild.emojis.cache.size}`,
+                inline: true
             }
-          )
+        )
+        .setFooter({
+            text: `Server ID: ${guild.id}`
+        })
+        .setTimestamp();
 
-          .setFooter({
-            text:
-              `ID: ${guild.id}`
-          })
-
-          .setTimestamp();
-
-      const row =
-        new ActionRowBuilder()
-          .addComponents(
-
-            new ButtonBuilder()
-              .setCustomId(
-                'roles_btn'
-              )
-              .setLabel(
-                'Roles'
-              )
-              .setStyle(
-                ButtonStyle.Danger
-              ),
-
-            new ButtonBuilder()
-              .setCustomId(
-                'emojis_btn'
-              )
-              .setLabel(
-                'Emojis'
-              )
-              .setStyle(
-                ButtonStyle.Secondary
-              )
-
-          );
-
-      return message.channel.send({
-        embeds: [embed],
-        components: [row]
-      });
-    }
-
+    return message.channel.send({
+        embeds: [embed]
+    });
+}
     // =========================
     // PURGE
     // =========================
@@ -780,83 +831,133 @@ if (command === 'avatar' || command === 'av') {
       );
     }
 
-    // =========================
-    // BAN
-    // =========================
+   // =========================
+   // BAN
+   // =========================
 
-    if (command === 'ban') {
+if (command === 'ban') {
 
-      if (
-    !message.member.permissions.has(
-        PermissionsBitField.Flags.BanMembers
-    )
-) {
-    return message.channel.send(
-        'You need Ban Members permission.'
-    );
-}
-      return;
-
-      const member =
-        message.mentions.members.first();
-
-      if (member.id === message.author.id) {
-    return message.channel.send(
-        '❌ You cannot ban yourself.'
-    );
-}
-
-if (
-    member.permissions.has(
-        PermissionsBitField.Flags.Administrator
-    )
-) {
-    return message.channel.send(
-        '❌ You cannot ban another administrator.'
-    );
-}
-
-if (
-    member.roles.highest.position >=
-    message.member.roles.highest.position
-) {
-    return message.channel.send(
-        '❌ That user has an equal or higher role.'
-    );
-}
-
-if (!member.bannable) {
-    return message.channel.send(
-        '❌ I cannot ban that user.'
-    );
-}
-
-      if (!member) {
-
+    if (
+        !message.member.permissions.has(
+            PermissionsBitField.Flags.BanMembers
+        )
+    ) {
         return message.channel.send(
-          'Mention a user.'
+            '❌ You need Ban Members permission.'
         );
-      }
-
-      await member.ban();
-
-      const embed =
-        new EmbedBuilder()
-
-          .setColor('#ff0000')
-
-          .setDescription(
-`🔨 ${member.user.tag} has been banned.`
-          );
-
-      return message.channel.send({
-        embeds: [embed]
-      });
     }
 
+    const member =
+        message.mentions.members.first();
+
+    if (!member) {
+        return message.channel.send(
+            '❌ Mention a user.'
+        );
+    }
+
+    const reason =
+        args.slice(1).join(' ') ||
+        'No reason provided';
+
+    if (member.id === message.author.id) {
+        return message.channel.send(
+            '❌ You cannot ban yourself.'
+        );
+    }
+
+    if (
+        member.permissions.has(
+            PermissionsBitField.Flags.Administrator
+        )
+    ) {
+        return message.channel.send(
+            '❌ You cannot ban an administrator.'
+        );
+    }
+
+    if (
+        member.roles.highest.position >=
+        message.member.roles.highest.position
+    ) {
+        return message.channel.send(
+            '❌ User has equal or higher role.'
+        );
+    }
+
+    if (!member.bannable) {
+        return message.channel.send(
+            '❌ I cannot ban that user.'
+        );
+    }
+
+    await member.ban({ reason });
+
+    const embed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setTitle('🔨 User Banned')
+        .addFields(
+            {
+                name: 'User',
+                value: member.user.tag
+            },
+            {
+                name: 'Moderator',
+                value: message.author.tag
+            },
+            {
+                name: 'Reason',
+                value: reason
+            }
+        )
+        .setTimestamp();
+
+    return message.channel.send({
+        embeds: [embed]
+    });
+}
     // =========================
-    // KICK
+    // UNBAN
     // =========================
+
+if (command === 'unban') {
+
+    if (
+        !message.member.permissions.has(
+            PermissionsBitField.Flags.BanMembers
+        )
+    ) {
+        return message.channel.send(
+            '❌ You need Ban Members permission.'
+        );
+    }
+
+    const id = args[0];
+
+    if (!id) {
+        return message.channel.send(
+            '❌ Provide a user ID.'
+        );
+    }
+
+    try {
+
+        await message.guild.members.unban(id);
+
+        return message.channel.send(
+            `✅ User ${id} unbanned.`
+        );
+
+    } catch {
+
+        return message.channel.send(
+            '❌ User not found in ban list.'
+        );
+    }
+}
+    // =========================
+// KICK
+// =========================
 
 if (command === 'kick') {
 
@@ -875,18 +976,20 @@ if (command === 'kick') {
 
     if (!member) {
         return message.channel.send(
-            'Mention a user.'
+            '❌ Mention a user.'
         );
     }
 
-    // Cannot kick yourself
+    const reason =
+        args.slice(1).join(' ') ||
+        'No reason provided';
+
     if (member.id === message.author.id) {
         return message.channel.send(
             '❌ You cannot kick yourself.'
         );
     }
 
-    // Cannot kick administrators
     if (
         member.permissions.has(
             PermissionsBitField.Flags.Administrator
@@ -897,34 +1000,268 @@ if (command === 'kick') {
         );
     }
 
-    // Cannot kick same/higher role
     if (
         member.roles.highest.position >=
         message.member.roles.highest.position
     ) {
         return message.channel.send(
-            '❌ That user has an equal or higher role.'
+            '❌ User has equal or higher role.'
         );
     }
 
-    // Bot hierarchy check
     if (!member.kickable) {
         return message.channel.send(
             '❌ I cannot kick that user.'
         );
     }
 
-    await member.kick();
+    await member.kick(reason);
+
+    return message.channel.send(
+        `👢 ${member.user.tag} kicked.\nReason: ${reason}`
+    );
+}
+    // =========================
+    // WARN
+    // =========================
+
+if (command === 'warn') {
+
+    if (
+        !message.member.permissions.has(
+            PermissionsBitField.Flags.ModerateMembers
+        )
+    ) {
+        return message.channel.send(
+            '❌ You need Moderate Members permission.'
+        );
+    }
+
+    const member =
+        message.mentions.members.first();
+
+    if (!member) {
+        return message.channel.send(
+            'Mention a user.'
+        );
+    }
+
+    const reason =
+        args.slice(1).join(' ') ||
+        'No reason provided';
+
+    if (!warnings.has(member.id)) {
+        warnings.set(member.id, []);
+    }
+
+    warnings.get(member.id).push({
+        moderator: message.author.tag,
+        reason,
+        date: new Date()
+    });
+
+    return message.channel.send(
+        `⚠️ ${member.user.tag} warned.\nReason: ${reason}`
+    );
+}
+    // =========================
+// WARNINGS
+// =========================
+
+if (command === 'warnings') {
+
+    const member =
+        message.mentions.members.first();
+
+    if (!member) {
+        return message.channel.send(
+            'Mention a user.'
+        );
+    }
+
+    const data =
+        warnings.get(member.id);
+
+    if (!data || !data.length) {
+        return message.channel.send(
+            'No warnings found.'
+        );
+    }
 
     const embed = new EmbedBuilder()
         .setColor('#ff0000')
+        .setTitle(
+            `⚠️ Warnings for ${member.user.tag}`
+        )
         .setDescription(
-            `👢 ${member.user.tag} has been kicked.`
+            data
+                .map(
+                    (w, i) =>
+                        `**${i + 1}.** ${w.reason}\nModerator: ${w.moderator}`
+                )
+                .join('\n\n')
         );
 
     return message.channel.send({
         embeds: [embed]
     });
+}
+    // =========================
+// CLEARWARNS
+// =========================
+
+if (command === 'clearwarns') {
+
+    if (
+        !message.member.permissions.has(
+            PermissionsBitField.Flags.ModerateMembers
+        )
+    ) {
+        return;
+    }
+
+    const member =
+        message.mentions.members.first();
+
+    if (!member) {
+        return message.channel.send(
+            'Mention a user.'
+        );
+    }
+
+    warnings.delete(member.id);
+
+    return message.channel.send(
+        `✅ Cleared warnings for ${member.user.tag}`
+    );
+}
+    // =========================
+// ROLELIST
+// =========================
+
+if (command === 'rolelist') {
+
+    const roles =
+        message.guild.roles.cache
+            .sort(
+                (a, b) =>
+                    b.position - a.position
+            )
+            .map(
+                r => r.name
+            )
+            .join('\n');
+
+    const embed =
+        new EmbedBuilder()
+            .setColor('#ff0000')
+            .setTitle('🎭 Server Roles')
+            .setDescription(roles);
+
+    return message.channel.send({
+        embeds: [embed]
+    });
+}
+    // =========================
+// BOTINFO
+// =========================
+
+if (command === 'botinfo') {
+
+    const embed =
+        new EmbedBuilder()
+            .setColor('#ff0000')
+            .setTitle('🤖 Bot Information')
+            .addFields(
+                {
+                    name: 'Ping',
+                    value: `${client.ws.ping}ms`,
+                    inline: true
+                },
+                {
+                    name: 'Servers',
+                    value: `${client.guilds.cache.size}`,
+                    inline: true
+                },
+                {
+                    name: 'Users',
+                    value: `${client.users.cache.size}`,
+                    inline: true
+                }
+            )
+            .setTimestamp();
+
+    return message.channel.send({
+        embeds: [embed]
+    });
+}
+    // =========================
+// NICKNAME
+// =========================
+
+if (
+ command === 'nickname' ||
+ command === 'nick'
+) {
+
+    if (
+        !message.member.permissions.has(
+            PermissionsBitField.Flags.ManageNicknames
+        )
+    ) {
+        return;
+    }
+
+    const member =
+        message.mentions.members.first();
+
+    const nickname =
+        args.slice(1).join(' ');
+
+    if (!member || !nickname) {
+        return message.channel.send(
+            'Usage: ?nickname @user NewNick'
+        );
+    }
+
+    await member.setNickname(
+        nickname
+    );
+
+    return message.channel.send(
+        `✅ Nickname changed for ${member}`
+    );
+}
+    // =========================
+// SLOWMODE
+// =========================
+
+if (command === 'slowmode') {
+
+    if (
+        !message.member.permissions.has(
+            PermissionsBitField.Flags.ManageChannels
+        )
+    ) {
+        return;
+    }
+
+    const seconds =
+        parseInt(args[0]);
+
+    if (isNaN(seconds)) {
+        return message.channel.send(
+            'Provide seconds.'
+        );
+    }
+
+    await message.channel.setRateLimitPerUser(
+        seconds
+    );
+
+    return message.channel.send(
+        `🐌 Slowmode set to ${seconds}s`
+    );
 }
     // =========================
     // TIMEOUT
@@ -944,7 +1281,9 @@ if (command === 'kick') {
       const duration =
         parseInt(args[1]) || 1;
 
-      if (!member) {
+      if (member.id === message.author.id)
+        
+        if (!member) {
 
         return message.channel.send(
           'Mention a user.'
@@ -1122,6 +1461,109 @@ if (command === 'role') {
     );
 }
     
+    // =========================
+    // ROLEINFO
+    // =========================
+
+    if (command === 'roleinfo') {
+
+    const roleName = args.join(' ');
+
+    if (!roleName) {
+        return message.channel.send(
+            'Usage: ?roleinfo Role Name'
+        );
+    }
+
+    const role =
+        message.guild.roles.cache.find(
+            r =>
+                r.name.toLowerCase() ===
+                roleName.toLowerCase()
+        );
+
+    if (!role) {
+        return message.channel.send(
+            'Role not found.'
+        );
+    }
+
+    const members =
+        role.members.size;
+
+    const embed = new EmbedBuilder()
+        .setColor(role.color || '#ff0000')
+        .setTitle(`🎭 ${role.name}`)
+        .addFields(
+            {
+                name: '🆔 Role ID',
+                value: role.id
+            },
+            {
+                name: '👥 Members',
+                value: `${members}`,
+                inline: true
+            },
+            {
+                name: '📊 Position',
+                value: `${role.position}`,
+                inline: true
+            },
+            {
+                name: '📢 Mentionable',
+                value: role.mentionable ? 'Yes' : 'No',
+                inline: true
+            }
+        )
+        .setTimestamp();
+
+    return message.channel.send({
+        embeds: [embed]
+    });
+}
+    // =========================
+// CHANNELINFO
+// =========================
+
+if (
+    command === 'channelinfo' ||
+    command === 'ci'
+) {
+
+    const channel =
+        message.mentions.channels.first() ||
+        message.channel;
+
+    const embed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setTitle('📁 Channel Information')
+        .addFields(
+            {
+                name: '📛 Name',
+                value: `${channel.name}`,
+                inline: true
+            },
+            {
+                name: '🆔 ID',
+                value: channel.id,
+                inline: true
+            },
+            {
+                name: '📂 Type',
+                value: `${channel.type}`,
+                inline: true
+            },
+            {
+                name: '📅 Created',
+                value: `<t:${Math.floor(channel.createdTimestamp / 1000)}:F>`
+            }
+        )
+        .setTimestamp();
+
+    return message.channel.send({
+        embeds: [embed]
+    });
+}
     // =========================
     // RULES
     // =========================
