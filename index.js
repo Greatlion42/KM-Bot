@@ -282,163 +282,132 @@ if (command === 'help') {
     }
 
     // =========================
-    // ANNOUNCE
-    // =========================
+// ANNOUNCE
+// =========================
 
-    if (command === 'announce') {
+if (command === 'announce') {
 
-      if (
-        !isOwnerOrAdmin(
-          message.member
+    if (
+        !message.member.permissions.has(
+            PermissionsBitField.Flags.Administrator
         )
-      ) {
+    ) {
         return message.channel.send(
-          'No permission.'
+            '❌ You need Administrator permission.'
         );
-      }
+    }
 
-      const raw =
-        message.content
-          .slice(
-            PREFIX.length +
-            command.length
-          )
-          .trim();
-
-      const matches =
-        [
-          ...raw.matchAll(
-            /"([^"]+)"/g
-          )
-        ].map(
-          m => m[1]
+    const matches =
+        message.content.match(
+            /"([^"]*)"/g
         );
 
-      if (matches.length < 4) {
-
+    if (
+        !matches ||
+        matches.length < 4
+    ) {
         return message.channel.send(
-`Usage:
-?announce "message" "channel" "role/everyone" "team name"
-
-Example:
-?announce "Queue open now." "#general" "everyone" "Krunker Mumbai Moderation Team"`
+            'Usage:\n?announce "message" "channel" "role/everyone/here" "author"'
         );
-      }
+    }
 
-      const [
-        announcementText,
-        channelInput,
-        roleInput,
-        fromInput
-      ] = matches;
+    const announcementText =
+        matches[0].slice(1, -1);
 
-      let targetChannel =
-        message.mentions.channels.first();
+    const channelArg =
+        matches[1].slice(1, -1);
 
-      if (!targetChannel) {
+    const pingArg =
+        matches[2].slice(1, -1);
 
-        targetChannel =
-          message.guild.channels.cache.find(
+    const authorName =
+        matches[3].slice(1, -1);
+
+    const targetChannel =
+        message.guild.channels.cache.get(
+            channelArg
+        ) ||
+
+        message.guild.channels.cache.find(
             c =>
-              c.id === channelInput ||
-              c.name ===
-              channelInput.replace(
-                '#',
-                ''
-              )
-          );
-      }
-
-      if (!targetChannel) {
-
-        return message.channel.send(
-          'Channel not found.'
+                c.name.toLowerCase() ===
+                channelArg.toLowerCase()
         );
-      }
 
-      let pingText = '';
+    if (!targetChannel) {
+        return message.channel.send(
+            '❌ Channel not found.'
+        );
+    }
 
-      if (
-        roleInput.toLowerCase() ===
+    let pingText = '';
+
+    if (
+        pingArg.toLowerCase() ===
         'everyone'
-      ) {
+    ) {
 
         pingText = '@everyone';
 
-      } else if (
-        roleInput.toLowerCase() ===
+    } else if (
+        pingArg.toLowerCase() ===
         'here'
-      ) {
+    ) {
 
         pingText = '@here';
 
-      } else {
+    } else {
 
         const role =
-          message.guild.roles.cache.find(
-            r =>
-              r.name.toLowerCase() ===
-              roleInput.toLowerCase()
-          );
+            message.guild.roles.cache.find(
+                r =>
+                    r.name.toLowerCase() ===
+                    pingArg.toLowerCase()
+            ) ||
 
-        if (!role) {
+            message.guild.roles.cache.get(
+                pingArg
+            );
 
-          return message.channel.send(
-            'Role not found.'
-          );
+        if (role) {
+            pingText = `<@&${role.id}>`;
         }
-
-        pingText =
-          `<@&${role.id}>`;
-      }
-
-      const embed =
-        new EmbedBuilder()
-
-          .setColor('#ff0000')
-
-          .setAuthor({
-            name: fromInput,
-            iconURL:
-              message.guild.iconURL({
-                dynamic: true
-              })
-          })
-
-          .setDescription(
-`${announcementText}
-
-- ${fromInput}`
-          )
-
-          .setThumbnail(
-            message.guild.iconURL({
-              dynamic: true,
-              size: 1024
-            })
-          )
-
-          .setFooter({
-            text: 'Krunker Mumbai'
-          })
-
-          .setTimestamp();
-
-      await targetChannel.send({
-        content: `${pingText},`,
-        embeds: [embed],
-        allowedMentions: {
-          parse: [
-            'roles',
-            'everyone'
-          ]
-        }
-      });
-
-      return message.channel.send(
-        `✅ Announcement sent to ${targetChannel}`
-      );
     }
+
+    const embed =
+        new EmbedBuilder()
+            .setColor('#ff0000')
+            .setAuthor({
+                name: authorName,
+                iconURL:
+                    message.guild.iconURL({
+                        dynamic: true
+                    }) || undefined
+            })
+            .setDescription(
+                announcementText
+            )
+            .setThumbnail(
+                message.guild.iconURL({
+                    dynamic: true,
+                    size: 1024
+                })
+            )
+            .setFooter({
+                text:
+                    `${message.guild.name} • ${new Date().toLocaleDateString()}`
+            })
+            .setTimestamp();
+
+    await targetChannel.send({
+        content: pingText || null,
+        embeds: [embed]
+    });
+
+    return message.channel.send(
+        `✅ Announcement sent to ${targetChannel}`
+    );
+}
 // =========================
     // PARTNERSHIPS
     // =========================
