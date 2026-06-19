@@ -315,15 +315,28 @@ if (command === 'announce') {
         matches[0].slice(1, -1);
 
     const channelArg =
-        matches[1].slice(1, -1);
+    matches[1]
+        .slice(1, -1)
+        .trim();
 
     const pingArg =
-        matches[2].slice(1, -1);
+    matches[2]
+        .slice(1, -1)
+        .trim();
 
     const authorName =
-        matches[3].slice(1, -1);
+    matches[3]
+        .slice(1, -1)
+        .trim();
 
-    const targetChannel =
+    console.log('Matches:', matches);
+console.log('Channel Arg:', JSON.stringify(channelArg));
+console.log('Guild ID:', message.guild.id);
+console.log(
+    'Channel Exists:',
+    message.guild.channels.cache.get(channelArg)
+);
+  const targetChannel =
         message.guild.channels.cache.get(
             channelArg
         ) ||
