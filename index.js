@@ -178,59 +178,76 @@ client.on(
       args.shift()?.toLowerCase();
 
     // =========================
-    // HELP
-    // =========================
+// HELP
+// =========================
 
-    if (command === 'help') {
+if (command === 'help') {
 
-      const embed =
-        new EmbedBuilder()
+    const embed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setTitle('📖 Command List')
+        .setDescription(`Prefix: ${PREFIX}`)
 
-          .setColor('#ff0000')
+        .addFields(
 
-          .setTitle(
-            '📖 KM BOT COMMANDS'
-          )
+            {
+                name: '🛠 Utility',
+                value:
+`?help
+?ping
+?avatar
+?av
+?userinfo
+?ui
+?serverinfo
+?channelinfo
+?membercount
+?roleinfo
+?rolelist
+?botinfo`
+            },
 
-          .setDescription(`
-⚙️ Utility
-\`${PREFIX}help\`
-\`${PREFIX}ping\`
-\`${PREFIX}avatar\`
-\`${PREFIX}userinfo\`
-\`${PREFIX}serverinfo\`
-\`${PREFIX}membercount\`
+            {
+                name: '🔨 Moderation',
+                value:
+`?ban
+?unban
+?kick
+?timeout
+?untimeout
+?warn
+?warnings
+?clearwarns
+?nickname
+?nick
+?purge
+?slowmode
+?lock
+?unlock
+?role`
+            },
 
-📢 Management
-\`${PREFIX}announce\`
-\`${PREFIX}say\`
-\`${PREFIX}partnerships\`
+            {
+                name: '📢 Management',
+                value:
+`?announce
+?say
+?partnerships
+?prefix`
+            },
 
-🛡 Moderation
-\`${PREFIX}ban\`
-\`${PREFIX}kick\`
-\`${PREFIX}timeout\`
-\`${PREFIX}untimeout\`
-\`${PREFIX}purge\`
-\`${PREFIX}lock\`
-\`${PREFIX}unlock\`
+            {
+                name: '📜 Server',
+                value:
+`?rules
+?pickuprules`
+            }
+        );
 
-📜 Server
-\`${PREFIX}rules\`
-\`${PREFIX}pickuprules\`
-          `)
-
-          .setFooter({
-            text: 'Krunker Mumbai'
-          })
-
-          .setTimestamp();
-
-      return message.channel.send({
+    return message.channel.send({
         embeds: [embed]
-      });
-    }
-
+    });
+}
     // =========================
     // PING
     // =========================
@@ -562,27 +579,25 @@ if (command === 'avatar' || command === 'av') {
     });
 }
     // =========================
-    // MEMBERCOUNT
-    // =========================
+// MEMBERCOUNT
+// =========================
 
-    if (
-      command === 'membercount'
-    ) {
+if (command === 'membercount') {
 
-      const embed =
-        new EmbedBuilder()
+    const humans =
+        message.guild.members.cache.filter(
+            m => !m.user.bot
+        ).size;
 
-          .setColor('#ff0000')
+    const bots =
+        message.guild.members.cache.filter(
+            m => m.user.bot
+        ).size;
 
-          .setDescription(
-`👥 Members: ${message.guild.memberCount}`
-          );
-
-      return message.channel.send({
-        embeds: [embed]
-      });
-    }
-
+    return message.channel.send(
+        `👥 Members: ${message.guild.memberCount}\n🧑 Humans: ${humans}\n🤖 Bots: ${bots}`
+    );
+}
     // =========================
     // USERINFO
     // =========================
@@ -796,40 +811,49 @@ if (command === 'avatar' || command === 'av') {
     });
 }
     // =========================
-    // PURGE
-    // =========================
+// PURGE
+// =========================
 
-    if (command === 'purge') {
+if (command === 'purge') {
 
-      if (
-    !message.member.permissions.has(
-        PermissionsBitField.Flags.ManageMessages
-    )
-) {
-    return message.channel.send(
-        '❌ You need Manage Messages permission.'
-    );
-}
+    if (
+        !message.member.permissions.has(
+            PermissionsBitField.Flags.ManageMessages
+        )
+    ) {
+        return message.channel.send(
+            '❌ You need Manage Messages permission.'
+        );
+    }
 
-      const amount =
+    const amount =
         parseInt(args[0]);
 
-      if (!amount) {
-
+    if (
+        isNaN(amount) ||
+        amount < 1 ||
+        amount > 100
+    ) {
         return message.channel.send(
-          'Provide amount.'
+            '❌ Enter a number between 1 and 100.'
         );
-      }
+    }
 
-      await message.channel.bulkDelete(
+    await message.channel.bulkDelete(
         amount,
         true
-      );
+    );
 
-      return message.channel.send(
-        `🗑 Deleted ${amount} messages.`
-      );
-    }
+    const msg =
+        await message.channel.send(
+            `🗑 Deleted ${amount} messages.`
+        );
+
+    setTimeout(
+        () => msg.delete().catch(() => {}),
+        3000
+    );
+}
 
    // =========================
    // BAN
@@ -1022,8 +1046,8 @@ if (command === 'kick') {
     );
 }
     // =========================
-    // WARN
-    // =========================
+// WARN
+// =========================
 
 if (command === 'warn') {
 
@@ -1057,7 +1081,7 @@ if (command === 'warn') {
     warnings.get(member.id).push({
         moderator: message.author.tag,
         reason,
-        date: new Date()
+        date: Date.now()
     });
 
     return message.channel.send(
@@ -1079,22 +1103,22 @@ if (command === 'warnings') {
         );
     }
 
-    const data =
-        warnings.get(member.id);
+    const userWarnings =
+        warnings.get(member.id) || [];
 
-    if (!data || !data.length) {
+    if (!userWarnings.length) {
         return message.channel.send(
             'No warnings found.'
         );
     }
 
     const embed = new EmbedBuilder()
-        .setColor('#ff0000')
+        .setColor('#ffaa00')
         .setTitle(
             `⚠️ Warnings for ${member.user.tag}`
         )
         .setDescription(
-            data
+            userWarnings
                 .map(
                     (w, i) =>
                         `**${i + 1}.** ${w.reason}\nModerator: ${w.moderator}`
@@ -1117,7 +1141,9 @@ if (command === 'clearwarns') {
             PermissionsBitField.Flags.ModerateMembers
         )
     ) {
-        return;
+        return message.channel.send(
+            '❌ You need Moderate Members permission.'
+        );
     }
 
     const member =
@@ -1132,7 +1158,7 @@ if (command === 'clearwarns') {
     warnings.delete(member.id);
 
     return message.channel.send(
-        `✅ Cleared warnings for ${member.user.tag}`
+        `✅ Cleared all warnings for ${member.user.tag}`
     );
 }
     // =========================
@@ -1141,22 +1167,19 @@ if (command === 'clearwarns') {
 
 if (command === 'rolelist') {
 
-    const roles =
-        message.guild.roles.cache
-            .sort(
-                (a, b) =>
-                    b.position - a.position
-            )
-            .map(
-                r => r.name
-            )
-            .join('\n');
+    const roles = message.guild.roles.cache
+        .sort((a, b) => b.position - a.position)
+        .map(role => `${role.name} (${role.members.size})`)
+        .join('\n');
 
-    const embed =
-        new EmbedBuilder()
-            .setColor('#ff0000')
-            .setTitle('🎭 Server Roles')
-            .setDescription(roles);
+    const embed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setTitle('🎭 Server Roles')
+        .setDescription(
+            roles.length > 4096
+                ? roles.slice(0, 4000) + '...'
+                : roles
+        );
 
     return message.channel.send({
         embeds: [embed]
@@ -1168,28 +1191,43 @@ if (command === 'rolelist') {
 
 if (command === 'botinfo') {
 
-    const embed =
-        new EmbedBuilder()
-            .setColor('#ff0000')
-            .setTitle('🤖 Bot Information')
-            .addFields(
-                {
-                    name: 'Ping',
-                    value: `${client.ws.ping}ms`,
-                    inline: true
-                },
-                {
-                    name: 'Servers',
-                    value: `${client.guilds.cache.size}`,
-                    inline: true
-                },
-                {
-                    name: 'Users',
-                    value: `${client.users.cache.size}`,
-                    inline: true
-                }
-            )
-            .setTimestamp();
+    const embed = new EmbedBuilder()
+        .setColor('#ff0000')
+        .setTitle('🤖 Bot Information')
+        .addFields(
+            {
+                name: 'Bot Name',
+                value: client.user.username,
+                inline: true
+            },
+            {
+                name: 'Servers',
+                value: `${client.guilds.cache.size}`,
+                inline: true
+            },
+            {
+                name: 'Users',
+                value: `${client.users.cache.size}`,
+                inline: true
+            },
+            {
+                name: 'Ping',
+                value: `${client.ws.ping}ms`,
+                inline: true
+            },
+            {
+                name: 'Node.js',
+                value: process.version,
+                inline: true
+            },
+            {
+                name: 'Discord.js',
+                value: '14.26.4',
+                inline: true
+            }
+        )
+        .setThumbnail(client.user.displayAvatarURL())
+        .setTimestamp();
 
     return message.channel.send({
         embeds: [embed]
@@ -1200,8 +1238,8 @@ if (command === 'botinfo') {
 // =========================
 
 if (
- command === 'nickname' ||
- command === 'nick'
+    command === 'nickname' ||
+    command === 'nick'
 ) {
 
     if (
@@ -1209,18 +1247,26 @@ if (
             PermissionsBitField.Flags.ManageNicknames
         )
     ) {
-        return;
+        return message.channel.send(
+            '❌ You need Manage Nicknames permission.'
+        );
     }
 
     const member =
         message.mentions.members.first();
 
+    if (!member) {
+        return message.channel.send(
+            `Usage: ${PREFIX}nick @user NewName`
+        );
+    }
+
     const nickname =
         args.slice(1).join(' ');
 
-    if (!member || !nickname) {
+    if (!nickname) {
         return message.channel.send(
-            'Usage: ?nickname @user NewNick'
+            'Provide a nickname.'
         );
     }
 
@@ -1229,7 +1275,7 @@ if (
     );
 
     return message.channel.send(
-        `✅ Nickname changed for ${member}`
+        `✏️ Nickname updated for ${member.user.tag}`
     );
 }
     // =========================
@@ -1264,80 +1310,79 @@ if (command === 'slowmode') {
     );
 }
     // =========================
-    // TIMEOUT
-    // =========================
+// TIMEOUT
+// =========================
 
-    if (command === 'timeout') {
-
-      if (
-    !message.member.permissions.has(
-        PermissionsBitField.Flags.ModerateMembers
-    )
-) return;
-
-      const member =
-        message.mentions.members.first();
-
-      const duration =
-        parseInt(args[1]) || 1;
-
-      if (member.id === message.author.id)
-        
-        if (!member) {
-
-        return message.channel.send(
-          'Mention a user.'
-        );
-      }
-
-      await member.timeout(
-        duration * 60 * 1000
-      );
-
-      const embed =
-        new EmbedBuilder()
-
-          .setColor('#ff0000')
-
-          .setDescription(
-`⏳ ${member.user.tag} timed out for ${duration} minute(s).`
-          );
-
-      return message.channel.send({
-        embeds: [embed]
-      });
-    }
-
-    // =========================
-    // UNTIMEOUT
-    // =========================
+if (command === 'timeout') {
 
     if (
-      command === 'untimeout'
+        !message.member.permissions.has(
+            PermissionsBitField.Flags.ModerateMembers
+        )
     ) {
+        return;
+    }
 
-      if (
-    !message.member.permissions.has(
-        PermissionsBitField.Flags.ModerateMembers
-    )
-) return;
-
-      const member =
+    const member =
         message.mentions.members.first();
 
-      if (!member) {
-
+    if (!member) {
         return message.channel.send(
-          'Mention a user.'
+            '❌ Mention a user.'
         );
-      }
-
-      await member.timeout(null);
-
-      return message.channel.send(
-        `✅ ${member.user.tag} unmuted.`
-      );
     }
+
+    if (member.id === message.author.id) {
+        return message.channel.send(
+            '❌ You cannot timeout yourself.'
+        );
+    }
+
+    const duration =
+        parseInt(args[1]) || 1;
+
+    const reason =
+        args.slice(2).join(' ') ||
+        'No reason provided';
+
+    await member.timeout(
+        duration * 60 * 1000,
+        reason
+    );
+
+    return message.channel.send(
+        `⏳ ${member.user.tag} timed out for ${duration} minute(s).\nReason: ${reason}`
+    );
+}
+    // =========================
+// UNTIMEOUT
+// =========================
+
+if (command === 'untimeout') {
+
+    if (
+        !message.member.permissions.has(
+            PermissionsBitField.Flags.ModerateMembers
+        )
+    ) {
+        return;
+    }
+
+    const member =
+        message.mentions.members.first();
+
+    if (!member) {
+        return message.channel.send(
+            '❌ Mention a user.'
+        );
+    }
+
+    await member.timeout(null);
+
+    return message.channel.send(
+        `✅ ${member.user.tag} unmuted.`
+    );
+}
 
     // =========================
     // LOCK
@@ -1388,8 +1433,8 @@ if (command === 'slowmode') {
     }
 
     // =========================
-    // ROLE
-    // =========================
+// ROLE
+// =========================
 
 if (command === 'role') {
 
@@ -1415,12 +1460,6 @@ if (command === 'role') {
     const roleName =
         args.slice(1).join(' ');
 
-    if (!roleName) {
-        return message.channel.send(
-            'Provide a role name.'
-        );
-    }
-
     const role =
         message.guild.roles.cache.find(
             r =>
@@ -1430,7 +1469,7 @@ if (command === 'role') {
 
     if (!role) {
         return message.channel.send(
-            'Role not found.'
+            '❌ Role not found.'
         );
     }
 
@@ -1443,22 +1482,20 @@ if (command === 'role') {
         );
     }
 
-    if (
-        member.roles.cache.has(role.id)
-    ) {
+    if (member.roles.cache.has(role.id)) {
 
         await member.roles.remove(role);
 
         return message.channel.send(
-            `➖ Removed ${role} from ${member}`
-        );
+    `➖ Removed role "${role.name}" from ${member.user.tag}`
+);
     }
 
     await member.roles.add(role);
 
     return message.channel.send(
-        `➕ Added ${role} to ${member}`
-    );
+    `➕ Added role "${role.name}" to ${member.user.tag}`
+);
 }
     
     // =========================
@@ -1534,31 +1571,28 @@ if (
         message.mentions.channels.first() ||
         message.channel;
 
-    const embed = new EmbedBuilder()
-        .setColor('#ff0000')
-        .setTitle('📁 Channel Information')
-        .addFields(
-            {
-                name: '📛 Name',
-                value: `${channel.name}`,
-                inline: true
-            },
-            {
-                name: '🆔 ID',
-                value: channel.id,
-                inline: true
-            },
-            {
-                name: '📂 Type',
-                value: `${channel.type}`,
-                inline: true
-            },
-            {
-                name: '📅 Created',
-                value: `<t:${Math.floor(channel.createdTimestamp / 1000)}:F>`
-            }
-        )
-        .setTimestamp();
+    const embed =
+        new EmbedBuilder()
+            .setColor('#ff0000')
+            .setTitle(
+                '📁 Channel Information'
+            )
+            .addFields(
+                {
+                    name: 'Name',
+                    value: channel.name,
+                    inline: true
+                },
+                {
+                    name: 'ID',
+                    value: channel.id,
+                    inline: true
+                },
+                {
+                    name: 'Created',
+                    value: `<t:${Math.floor(channel.createdTimestamp / 1000)}:F>`
+                }
+            );
 
     return message.channel.send({
         embeds: [embed]
