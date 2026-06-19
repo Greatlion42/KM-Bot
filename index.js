@@ -287,140 +287,143 @@ if (command === 'help') {
 
 if (command === 'announce') {
 
-    if (
-        !message.member.permissions.has(
-            PermissionsBitField.Flags.Administrator
-        )
-    ) {
-        return message.channel.send(
-            '❌ You need Administrator permission.'
-        );
-    }
-
-    const matches =
-        message.content.match(
-            /"([^"]*)"/g
-        );
-
-    if (
-        !matches ||
-        matches.length < 4
-    ) {
-        return message.channel.send(
-            'Usage:\n?announce "message" "channel" "role/everyone/here" "author"'
-        );
-    }
-
-    const announcementText =
-        matches[0].slice(1, -1);
-
-    const channelArg =
-    matches[1]
-        .slice(1, -1)
-        .trim();
-
-    const pingArg =
-    matches[2]
-        .slice(1, -1)
-        .trim();
-
-    const authorName =
-    matches[3]
-        .slice(1, -1)
-        .trim();
-
-    console.log('Matches:', matches);
-console.log('Channel Arg:', JSON.stringify(channelArg));
-console.log('Guild ID:', message.guild.id);
-console.log(
-    'Channel Exists:',
-    message.guild.channels.cache.get(channelArg)
-);
-  const targetChannel =
-        message.guild.channels.cache.get(
-            channelArg
-        ) ||
-
-        message.guild.channels.cache.find(
-            c =>
-                c.name.toLowerCase() ===
-                channelArg.toLowerCase()
-        );
-
-    if (!targetChannel) {
-        return message.channel.send(
-            '❌ Channel not found.'
-        );
-    }
-
-    let pingText = '';
-
-    if (
-        pingArg.toLowerCase() ===
-        'everyone'
-    ) {
-
-        pingText = '@everyone';
-
-    } else if (
-        pingArg.toLowerCase() ===
-        'here'
-    ) {
-
-        pingText = '@here';
-
-    } else {
-
-        const role =
-            message.guild.roles.cache.find(
-                r =>
-                    r.name.toLowerCase() ===
-                    pingArg.toLowerCase()
-            ) ||
-
-            message.guild.roles.cache.get(
-                pingArg
-            );
-
-        if (role) {
-            pingText = `<@&${role.id}>`;
-        }
-    }
-
-    const embed =
-        new EmbedBuilder()
-            .setColor('#ff0000')
-            .setAuthor({
-                name: authorName,
-                iconURL:
-                    message.guild.iconURL({
-                        dynamic: true
-                    }) || undefined
-            })
-            .setDescription(
-                announcementText
-            )
-            .setThumbnail(
-                message.guild.iconURL({
-                    dynamic: true,
-                    size: 1024
-                })
-            )
-            .setFooter({
-                text:
-                    `${message.guild.name} • ${new Date().toLocaleDateString()}`
-            })
-            .setTimestamp();
-
-    await targetChannel.send({
-        content: pingText || null,
-        embeds: [embed]
-    });
-
+```
+if (
+    !message.member.permissions.has(
+        PermissionsBitField.Flags.Administrator
+    )
+) {
     return message.channel.send(
-        `✅ Announcement sent to ${targetChannel}`
+        '❌ You need Administrator permission.'
     );
 }
+
+const parts =
+    message.content.match(
+        /\{([\s\S]*?)\}/g
+    );
+
+if (
+    !parts ||
+    parts.length < 4
+) {
+    return message.channel.send(
+        'Usage:\n?announce {message} {channel/channel_id} {role/everyone/here} {from}'
+    );
+}
+
+const announcementText =
+    parts[0]
+        .slice(1, -1)
+        .trim();
+
+const channelArg =
+    parts[1]
+        .slice(1, -1)
+        .trim();
+
+const pingArg =
+    parts[2]
+        .slice(1, -1)
+        .trim();
+
+const authorName =
+    parts[3]
+        .slice(1, -1)
+        .trim();
+
+const targetChannel =
+
+    message.guild.channels.cache.get(
+        channelArg
+    ) ||
+
+    message.guild.channels.cache.find(
+        c =>
+            c.name.toLowerCase() ===
+            channelArg.toLowerCase()
+    );
+
+if (!targetChannel) {
+    return message.channel.send(
+        '❌ Channel not found.'
+    );
+}
+
+let pingText = '';
+
+if (
+    pingArg.toLowerCase() ===
+    'everyone'
+) {
+
+    pingText = '@everyone';
+
+} else if (
+    pingArg.toLowerCase() ===
+    'here'
+) {
+
+    pingText = '@here';
+
+} else {
+
+    const role =
+
+        message.guild.roles.cache.get(
+            pingArg
+        ) ||
+
+        message.guild.roles.cache.find(
+            r =>
+                r.name.toLowerCase() ===
+                pingArg.toLowerCase()
+        );
+
+    if (role) {
+        pingText =
+            `<@&${role.id}>`;
+    }
+}
+
+const embed =
+    new EmbedBuilder()
+        .setColor('#ff0000')
+        .setAuthor({
+            name: authorName,
+            iconURL:
+                message.guild.iconURL({
+                    dynamic: true
+                }) || undefined
+        })
+        .setDescription(
+            announcementText
+        )
+        .setThumbnail(
+            message.guild.iconURL({
+                dynamic: true,
+                size: 1024
+            })
+        )
+        .setFooter({
+            text:
+                `${message.guild.name}`
+        })
+        .setTimestamp();
+
+await targetChannel.send({
+    content:
+        pingText || null,
+    embeds: [embed]
+});
+
+return message.channel.send(
+    `✅ Announcement sent to ${targetChannel}`
+);
+```
+
+}
+
 // =========================
     // PARTNERSHIPS
     // =========================
