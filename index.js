@@ -287,107 +287,74 @@ if (command === 'help') {
 
 if (command === 'announce') {
 
-```
-if (
-    !message.member.permissions.has(
-        PermissionsBitField.Flags.Administrator
-    )
-) {
-    return message.channel.send(
-        '❌ You need Administrator permission.'
-    );
-}
+    if (
+        !message.member.permissions.has(
+            PermissionsBitField.Flags.Administrator
+        )
+    ) {
+        return message.channel.send(
+            '❌ You need Administrator permission.'
+        );
+    }
 
-const parts =
-    message.content.match(
+    const parts = message.content.match(
         /\{([\s\S]*?)\}/g
     );
 
-if (
-    !parts ||
-    parts.length < 4
-) {
-    return message.channel.send(
-        'Usage:\n?announce {message} {channel/channel_id} {role/everyone/here} {from}'
-    );
-}
+    if (!parts || parts.length < 4) {
+        return message.channel.send(
+            'Usage: ?announce {message} {channel/channel_id} {role/everyone/here} {from}'
+        );
+    }
 
-const announcementText =
-    parts[0]
-        .slice(1, -1)
-        .trim();
+    const announcementText =
+        parts[0].slice(1, -1).trim();
 
-const channelArg =
-    parts[1]
-        .slice(1, -1)
-        .trim();
+    const channelArg =
+        parts[1].slice(1, -1).trim();
 
-const pingArg =
-    parts[2]
-        .slice(1, -1)
-        .trim();
+    const pingArg =
+        parts[2].slice(1, -1).trim();
 
-const authorName =
-    parts[3]
-        .slice(1, -1)
-        .trim();
+    const authorName =
+        parts[3].slice(1, -1).trim();
 
-const targetChannel =
-
-    message.guild.channels.cache.get(
-        channelArg
-    ) ||
-
-    message.guild.channels.cache.find(
-        c =>
-            c.name.toLowerCase() ===
-            channelArg.toLowerCase()
-    );
-
-if (!targetChannel) {
-    return message.channel.send(
-        '❌ Channel not found.'
-    );
-}
-
-let pingText = '';
-
-if (
-    pingArg.toLowerCase() ===
-    'everyone'
-) {
-
-    pingText = '@everyone';
-
-} else if (
-    pingArg.toLowerCase() ===
-    'here'
-) {
-
-    pingText = '@here';
-
-} else {
-
-    const role =
-
-        message.guild.roles.cache.get(
-            pingArg
-        ) ||
-
-        message.guild.roles.cache.find(
-            r =>
-                r.name.toLowerCase() ===
-                pingArg.toLowerCase()
+    const targetChannel =
+        message.guild.channels.cache.get(channelArg) ||
+        message.guild.channels.cache.find(
+            c =>
+                c.name.toLowerCase() ===
+                channelArg.toLowerCase()
         );
 
-    if (role) {
-        pingText =
-            `<@&${role.id}>`;
+    if (!targetChannel) {
+        return message.channel.send(
+            '❌ Channel not found.'
+        );
     }
-}
 
-const embed =
-    new EmbedBuilder()
+    let pingText = '';
+
+    if (pingArg.toLowerCase() === 'everyone') {
+        pingText = '@everyone';
+    } else if (pingArg.toLowerCase() === 'here') {
+        pingText = '@here';
+    } else {
+
+        const role =
+            message.guild.roles.cache.get(pingArg) ||
+            message.guild.roles.cache.find(
+                r =>
+                    r.name.toLowerCase() ===
+                    pingArg.toLowerCase()
+            );
+
+        if (role) {
+            pingText = `<@&${role.id}>`;
+        }
+    }
+
+    const embed = new EmbedBuilder()
         .setColor('#ff0000')
         .setAuthor({
             name: authorName,
@@ -396,9 +363,7 @@ const embed =
                     dynamic: true
                 }) || undefined
         })
-        .setDescription(
-            announcementText
-        )
+        .setDescription(announcementText)
         .setThumbnail(
             message.guild.iconURL({
                 dynamic: true,
@@ -406,22 +371,18 @@ const embed =
             })
         )
         .setFooter({
-            text:
-                `${message.guild.name}`
+            text: message.guild.name
         })
         .setTimestamp();
 
-await targetChannel.send({
-    content:
-        pingText || null,
-    embeds: [embed]
-});
+    await targetChannel.send({
+        content: pingText || null,
+        embeds: [embed]
+    });
 
-return message.channel.send(
-    `✅ Announcement sent to ${targetChannel}`
-);
-```
-
+    return message.channel.send(
+        `✅ Announcement sent to ${targetChannel}`
+    );
 }
 
 // =========================
